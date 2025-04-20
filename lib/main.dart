@@ -7,8 +7,16 @@ import 'controllers/theme_controller.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'views/landing_screen.dart';
+import 'views/login_screen.dart';
+import 'views/onboarding_screen.dart';
+import 'views/register_screen.dart';
+import 'widgets/auth_gate.dart';
+import 'views/home_screen.dart';
+import 'views/budget_screen.dart';
+import 'views/split_screen.dart';
+import 'views/settings_screen.dart';
 
-
+/// The main function initializes Firebase and sets up providers for a Flutter application.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -22,10 +30,12 @@ runApp(
         create: (_) => AuthController(authService: AuthenticationService()),
       ),
     ],
-    child: const UniCartApp(),
+    child: UniCartApp(),
   ),
 );}
 
+/// The `UniCartApp` class is a StatelessWidget that defines the main application structure for the
+/// UniCart app in Dart.
 class UniCartApp extends StatelessWidget {
   const UniCartApp({super.key});
 
@@ -37,7 +47,18 @@ class UniCartApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: const LandingScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthGate(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/landing': (context) => const LandingScreen(),
+        '/budget': (context) => const BudgetScreen(),
+        '/split': (context) => const SplitScreen(),
+        '/settings': (context) => const SettingsScreen(),
+      },
     );
   }
 }

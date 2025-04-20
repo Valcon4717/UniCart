@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthController extends ChangeNotifier {
   final AuthenticationService authService;
@@ -20,15 +21,31 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> register(String email, String password) async {
-    try {
-      error = null;
-      await authService.register(email, password);
-      notifyListeners();
-    } on FirebaseAuthException catch (e) {
-      error = e.message;
-      notifyListeners();
-    }
+  Future<void> register(String email, String password, String name) async {
+
+      // Save to Firestore
+      try {
+        error = null;
+        final credential = await authService.register(email, password);
+        final user = credential.user;
+
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+            'uid': user.uid,
+            'email': user.email,
+            'name': name,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        notifyListeners();
+      } on FirebaseAuthException catch (e) {
+        error = e.message;
+        notifyListeners();
+      }
   }
 
   void logout() {

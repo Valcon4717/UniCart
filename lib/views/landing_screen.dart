@@ -1,106 +1,187 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Make sure these paths are correct
-import 'onboarding_screen.dart'; // For your "Continue" navigation
-import '../widgets/auth_gate.dart';
 
-class LandingScreen extends StatelessWidget {
+class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
   @override
+  State<LandingScreen> createState() => _LandingScreenState();
+}
+
+class _LandingScreenState extends State<LandingScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _textOffset;
+  late Animation<Offset> _buttonOffset;
+  late Animation<double> _fadeIn;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _textOffset = Tween<Offset>(
+      begin: const Offset(-0.5, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+
+    _buttonOffset = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fadeIn = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: cs.surface,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            Text(
-              "Welcome to",
-              style: textTheme.headlineMedium?.copyWith(
-              fontSize: 57,
-              fontWeight: FontWeight.w500,
-              height: 1.12,
-              letterSpacing: -0.25,
-              color: cs.onSurface,
-              ),
-            ),
-            Text(
-              "UniCart",
-              style: textTheme.displaySmall?.copyWith(
-              fontSize: 57,
-              fontWeight: FontWeight.w500,
-              height: 1.12,
-              letterSpacing: -0.25,
-              color: cs.tertiary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text.rich(
-              TextSpan(
-                text: "Shared groceries ",
-                style: textTheme.bodyLarge?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  height: 1.33,
-                  color: cs.onSurface,
-                ),
-                children: [
-                  TextSpan(
-                    text: "made simple",
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      height: 1.33,
-                      color: cs.onSurface,
+      backgroundColor: theme.surface,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 230),
+
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) => Opacity(
+                  opacity: _fadeIn.value,
+                  child: SlideTransition(
+                    position: _textOffset,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Welcome to",
+                            style: textTheme.headlineMedium?.copyWith(
+                              fontSize: 57,
+                              fontWeight: FontWeight.w500,
+                              color: theme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            "UniCart",
+                            style: textTheme.displaySmall?.copyWith(
+                              fontSize: 57,
+                              fontWeight: FontWeight.w500,
+                              color: theme.tertiary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text.rich(
+                            TextSpan(
+                              text: "Shared groceries ",
+                              style: textTheme.bodyLarge?.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                height: 1.33,
+                                color: theme.onSurface,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: "made simple",
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.33,
+                                    color: theme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 90),
-            Image.asset(
-              Theme.of(context).brightness == Brightness.dark
-                  ? 'assets/images/land_dark.png'
-                  : 'assets/images/land_light.png',
-              height: 220,
-            ),
-            const SizedBox(height: 90),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
                 ),
               ),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AuthGate()),
-                );
-              },
-              child: const Text("Continue"),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => LoginScreen()),
-                );
-              },
-              child: const Text("Log in"),
-            ),
-            const SizedBox(height: 32),
-          ],
+
+              const Spacer(flex: 2),
+              // Button animation
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) => Opacity(
+                  opacity: _fadeIn.value,
+                  child: SlideTransition(
+                    position: _buttonOffset,
+                    child: Column(
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.primary,
+                            foregroundColor: theme.onPrimary,
+                            minimumSize: const Size.fromHeight(48),
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/onboarding');
+                          },
+                          child: const Text(
+                            "Continue",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/login');
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.primary,
+                            ),
+                            child: const Text(
+                              "Log in",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

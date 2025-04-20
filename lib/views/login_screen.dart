@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 
@@ -11,16 +10,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Text editing controllers for email and password fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Error messages
   String? _emailError;
   String? _passwordError;
-
-  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  String? _error;
 
+  /// The _login function handles user authentication by validating email and password inputs, then
+  /// calling the login method from an AuthController and updating the UI accordingly.
   Future<void> _login() async {
     setState(() {
       _emailError = null;
@@ -52,64 +52,135 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = false;
-      if (authController.error != null) {
-        _emailError = authController.error;
-        _passwordError = authController.error;
-      }
     });
+
+    if (authController.error != null) {
+      setState(() {
+        _emailError = 'Invalid login credentials. Please try again.';
+        _passwordError = 'Invalid login credentials. Please try again.';
+      });
+    } else {
+      Navigator.pushNamed(context, '/home');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
+      backgroundColor: theme.surface,
+      appBar: AppBar(
+        backgroundColor: theme.surface,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 20.0),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            color: theme.onSurface,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (_error != null) ...[
-                Text(_error!, style: TextStyle(color: cs.error)),
-                const SizedBox(height: 12),
-              ],
+              Text(
+                "Welcome Back!",
+                style: textTheme.headlineMedium?.copyWith(
+                  fontSize: 45,
+                  fontWeight: FontWeight.w500,
+                  color: theme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Log in to access your shared grocery lists.",
+                textAlign: TextAlign.center,
+                style: textTheme.bodyLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: theme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Email Input
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  border: const OutlineInputBorder(),
-                  errorText: _emailError,
-                ),
                 keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: "Password",
-                  border: const OutlineInputBorder(),
-                  errorText: _passwordError,
+                  labelText: "Email Address",
+                  errorText: _emailError,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text("Log In"),
               ),
               const SizedBox(height: 16),
+
+              // Password Input
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  errorText: _passwordError,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 50),
+
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primary,
+                    foregroundColor: theme.onPrimary,
+                    minimumSize: Size.fromHeight(48),
+                  ),
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Log In",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Register link
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  );
+                  Navigator.pushNamed(context, '/register');
                 },
-                child: const Text("Don’t have an account? Register here"),
-              )
+                child: const Text.rich(
+                  TextSpan(
+                    text: "Don’t have an account? ",
+                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                    children: [
+                      TextSpan(
+                        text: "Register",
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
