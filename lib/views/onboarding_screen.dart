@@ -56,7 +56,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _onNextPressed() {
     if (_currentIndex < pagesData.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration:  Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
@@ -81,9 +81,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         backgroundColor: theme.surface,
         elevation: 0,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 20.0),
+          padding:  EdgeInsets.only(left: 20.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon:  Icon(Icons.arrow_back),
             color: theme.onSurface,
             onPressed: () {
               Navigator.pushNamed(context, '/');
@@ -102,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final data = pagesData[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(
+                    padding:  EdgeInsets.symmetric(
                       horizontal: 24.0,
                       vertical: 32.0,
                     ),
@@ -113,7 +113,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           data["image"]!,
                           height: 220,
                         ),
-                        const SizedBox(height: 48),
+                         SizedBox(height: 48),
                         Text(
                           data["title"]!,
                           textAlign: TextAlign.center,
@@ -122,7 +122,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             color: theme.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                         SizedBox(height: 16),
                         Text(
                           data["caption"]!,
                           textAlign: TextAlign.center,
@@ -151,11 +151,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 dotWidth: 8,
               ),
             ),
-            const SizedBox(height: 24),
+             SizedBox(height: 24),
 
             // Continue button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding:  EdgeInsets.symmetric(horizontal: 24.0),
               child: ElevatedButton(
                 onPressed: () {
                   if (_currentIndex == pagesData.length - 1) {
@@ -173,12 +173,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _currentIndex == pagesData.length - 1
                       ? "Get Started"
                       : "Continue",
-                  style: const TextStyle(
+                  style:  TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+             SizedBox(height: 32),
           ],
         ),
       ),

@@ -5,6 +5,7 @@ import 'core/app_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/theme_controller.dart';
 import 'package:provider/provider.dart';
+import 'providers/group_provider.dart';
 import 'services/auth_service.dart';
 import 'views/landing_screen.dart';
 import 'views/login_screen.dart';
@@ -15,6 +16,9 @@ import 'views/home_screen.dart';
 import 'views/budget_screen.dart';
 import 'views/split_screen.dart';
 import 'views/settings_screen.dart';
+import 'views/create_group_screen.dart';
+import 'views/manage_groups_screen.dart';
+import 'views/join_or_create_group_screen.dart';
 
 /// The main function initializes Firebase and sets up providers for a Flutter application.
 Future<void> main() async {
@@ -26,6 +30,7 @@ runApp(
   MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeController()),
+      ChangeNotifierProvider(create: (_) => GroupProvider()),
       ChangeNotifierProvider(
         create: (_) => AuthController(authService: AuthenticationService()),
       ),
@@ -41,12 +46,13 @@ class UniCartApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeController = Provider.of<ThemeController>(context);
     return MaterialApp(
       title: 'UniCart',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeController.themeMode,
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthGate(),
@@ -58,6 +64,12 @@ class UniCartApp extends StatelessWidget {
         '/budget': (context) => const BudgetScreen(),
         '/split': (context) => const SplitScreen(),
         '/settings': (context) => const SettingsScreen(),
+        '/create-group': (context) => const CreateGroupScreen( 
+          groupId: '',
+          groupName: '',
+        ),
+        '/join-or-create-group': (context) => const JoinOrCreateGroupScreen(),
+        '/manage-groups': (context) => const ManageGroupsScreen(),
       },
     );
   }

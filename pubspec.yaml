@@ -40,6 +40,7 @@ dependencies:
   provider: ^6.1.4
   smooth_page_indicator: ^1.2.1
   cloud_firestore: ^5.6.6
+  share_plus: ^10.1.4
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,8 @@ flutter:
     - assets/images/second_dark.png
     - assets/images/third_light.png
     - assets/images/third_dark.png
+    - assets/images/empty_light.png
+    - assets/images/empty_dark.png
 
   fonts:
     - family: Roboto

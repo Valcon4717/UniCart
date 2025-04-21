@@ -75,9 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: theme.surface,
         elevation: 0,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 20.0),
+          padding:  EdgeInsets.only(left: 20.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon:  Icon(Icons.arrow_back),
             color: theme.onSurface,
             onPressed: () {
               Navigator.pop(context);
@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding:  EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: theme.onSurface,
                 ),
               ),
-              const SizedBox(height: 8),
+               SizedBox(height: 8),
               Text(
                 "Log in to access your shared grocery lists.",
                 textAlign: TextAlign.center,
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: theme.onSurface,
                 ),
               ),
-              const SizedBox(height: 40),
+               SizedBox(height: 40),
               // Email Input
               TextField(
                 controller: _emailController,
@@ -121,10 +121,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                       EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-              const SizedBox(height: 16),
+               SizedBox(height: 16),
 
               // Password Input
               TextField(
@@ -136,10 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                       EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-              const SizedBox(height: 50),
+               SizedBox(height: 50),
 
               // Login Button
               SizedBox(
@@ -152,20 +152,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text("Log In",
+                      ?  CircularProgressIndicator()
+                      :  Text("Log In",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
-              const SizedBox(height: 16),
+               SizedBox(height: 16),
 
               // Register link
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/register');
                 },
-                child: const Text.rich(
+                child:  Text.rich(
                   TextSpan(
                     text: "Don’t have an account? ",
                     style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
