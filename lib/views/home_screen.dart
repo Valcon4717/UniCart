@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../controllers/theme_controller.dart';
 import '../providers/group_provider.dart';
@@ -18,26 +18,42 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   bool _isDarkMode = false;
 
-  // Future<void> _pickAndUploadPhoto() async {
-  //   final picker = ImagePicker();
-  //   final user = FirebaseAuth.instance.currentUser;
+Future<void> _pickAndUploadPhoto() async {
+  final picker = ImagePicker();
+  final user = FirebaseAuth.instance.currentUser;
 
-  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-  //   if (pickedFile == null || user == null) return;
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  if (pickedFile == null || user == null) return;
 
-  //   final file = File(pickedFile.path);
-  //   final storageRef = FirebaseStorage.instance
-  //       .ref()
-  //       .child('user_profiles/${user.uid}/profile.jpg');
+  final file = File(pickedFile.path);
+  final storageRef = FirebaseStorage.instance
+      .ref()
+      .child('user_profiles/${user.uid}/profile.jpg');
 
-  //   final uploadTask = await storageRef.putFile(file);
-  //   final photoURL = await uploadTask.ref.getDownloadURL();
+  try {
+    final uploadTask = await storageRef.putFile(file);
+    final snapshot = await uploadTask;
 
-  //   await user.updatePhotoURL(photoURL);
-  //   await user.reload();
+    if (snapshot.state == TaskState.success) {
+      final photoURL = await snapshot.ref.getDownloadURL();
+      await user.updatePhotoURL(photoURL);
+      await user.reload();
 
-  //   setState(() {}); // Update UI
-  // }
+      setState(() {}); // Refresh UI
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profile photo updated!')),
+      );
+    } else {
+      throw Exception("Upload failed. Task state: ${snapshot.state}");
+    }
+  } catch (e) {
+    debugPrint('Upload failed: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Upload failed: $e')),
+    );
+  }
+}
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -96,8 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                   Center(
-                    // child: GestureDetector(
-                      // onTap: _pickAndUploadPhoto,
+                    child: GestureDetector(
+                      onTap: _pickAndUploadPhoto,
                       child: CircleAvatar(
                         radius: 30,
                         backgroundImage: user?.photoURL != null
@@ -107,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? Icon(Icons.person, size: 40)
                             : null,
                       ),
-                    // ),
+                    ),
                   ),
                   if (user?.displayName != null) ...[
                     SizedBox(height: 8),
@@ -181,14 +197,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: IconButton(
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             icon: CircleAvatar(
+              radius: 24, // Increase the radius to make the avatar bigger
               backgroundImage:
-                  user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+            user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
               child:
-                  user?.photoURL == null ? Icon(Icons.person, size: 20) : null,
+            user?.photoURL == null ? Icon(Icons.person, size: 30) : null, // Adjust icon size accordingly
             ),
           ),
         ),
-      ),
+            ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
