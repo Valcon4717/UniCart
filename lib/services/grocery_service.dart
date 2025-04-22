@@ -65,4 +65,17 @@ class GroceryService {
         .doc(listId)
         .delete();
   }
+  
+  Future<void> togglePinnedStatus({
+    required String groupId,
+    required String listId,
+    required bool currentStatus,
+  }) async {
+    await _db
+        .collection('groups')
+        .doc(groupId)
+        .collection('lists')
+        .doc(listId)
+        .update({'isPinned': !currentStatus});
+  }
 }

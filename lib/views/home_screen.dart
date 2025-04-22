@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../controllers/theme_controller.dart';
-import '../providers/group_provider.dart';
 import '../views/grocery_list_screen.dart';
 import 'dart:io';
 
@@ -43,17 +42,14 @@ Future<void> _pickAndUploadPhoto() async {
       await user.reload();
 
       setState(() {}); // Refresh UI
-
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
       // Update Firestore (not just FirebaseAuth)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'photoURL': downloadUrl});
+          .update({'photoURL': photoURL});
 
       // (Optional) Also update FirebaseAuth if you still want it
-      await user.updatePhotoURL(downloadUrl);
+      await user.updatePhotoURL(photoURL);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile photo updated!')),
@@ -109,10 +105,6 @@ Future<void> _pickAndUploadPhoto() async {
   final theme = Theme.of(context).colorScheme;
   final user = FirebaseAuth.instance.currentUser;
   final themeController = Provider.of<ThemeController>(context);
-  final groupProvider = Provider.of<GroupProvider>(context);
-  final groupDoc = groupProvider.group;
-  final groupName = groupDoc?.get('name');
-  final groupId = groupDoc?.id;
 
   _isDarkMode = themeController.themeMode == ThemeMode.dark;
     return Scaffold(
@@ -189,26 +181,6 @@ Future<void> _pickAndUploadPhoto() async {
       appBar: AppBar(
         backgroundColor: theme.surface,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-        Text(
-          groupName ?? 'UniCart',
-          style: TextStyle(
-            fontSize: 16,
-            color: theme.onSurface,
-          ),
-        ),
-        if (groupName != null && groupId != null)
-          Text(
-            'Group ID: $groupId',
-            style: TextStyle(
-          fontSize: 12,
-          color: theme.onSurface,
-            ),
-          ),
-          ],
-        ),
         leading: Padding(
           padding: EdgeInsets.only(left: 12.0),
           child: IconButton(

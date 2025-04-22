@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/grocery_service.dart';
+import '../services/firestore_utils.dart';
 import '../providers/group_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../widgets/user_avatar.dart';
 
 class GroceryListScreen extends StatelessWidget {
   const GroceryListScreen({super.key});
@@ -50,7 +50,6 @@ class GroceryListScreen extends StatelessWidget {
                   createdBy: userId,
                 );
               }
-
               Navigator.pop(context);
             },
             child: const Text("Add"),
@@ -62,9 +61,13 @@ class GroceryListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final groupId = Provider.of<GroupProvider>(context).group?.id;
+    final groupProvider = Provider.of<GroupProvider>(context);
+    final groupDoc = groupProvider.group;
+    final groupId = groupDoc?.id;
+    final groupName = groupDoc?.get('name') ?? 'UniCart';
     final theme = Theme.of(context).colorScheme;
 
+    // TO DO: Add picture when there is no 
     if (groupId == null) {
       return const Center(child: Text("No group selected."));
     }
@@ -79,12 +82,6 @@ class GroceryListScreen extends StatelessWidget {
           }
 
           final allLists = snapshot.data ?? [];
-
-          if (allLists.isEmpty) {
-            return const Center(child: Text("No grocery lists yet."));
-          }
-
-          // Separate pinned and unpinned lists
           final pinnedLists =
               allLists.where((list) => list['isPinned'] == true).toList();
           final unpinnedLists =
@@ -92,150 +89,114 @@ class GroceryListScreen extends StatelessWidget {
           final lists = [...pinnedLists, ...unpinnedLists];
 
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            itemCount: lists.length,
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+            itemCount: lists.length + 1,
             itemBuilder: (context, index) {
-              final list = lists[index];
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    groupName,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: theme.onSurface,
+                    ),
+                  ),
+                );
+              }
+
+              final list = lists[index - 1];
+              final listId = list['id'];
 
               return Dismissible(
-                  key: ValueKey(list['id']),
-                  direction: DismissDirection.endToStart, // swipe left
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    color: Colors.red,
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (_) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text("Delete List"),
-                        content: const Text(
-                            "Are you sure you want to delete this list?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(false),
-                            child: const Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text("Delete"),
-                          ),
-                        ],
+                key: ValueKey(listId),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  color: Colors.red,
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                confirmDismiss: (_) async => await showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text("Delete List"),
+                    content:
+                        const Text("Are you sure you want to delete this list?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text("Cancel"),
                       ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text("Delete"),
+                      ),
+                    ],
+                  ),
+                ),
+                onDismissed: (_) async {
+                  try {
+                    await FirestoreUtils.listCollection(groupId)
+                        .doc(listId)
+                        .delete();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('List "${list['name']}" deleted')),
                     );
-                  },
-                  onDismissed: (_) async {
-                    final listId = list['id'];
-
-                    try {
-                      await FirebaseFirestore.instance
-                          .collection('groups')
-                          .doc(groupId)
-                          .collection('lists')
-                          .doc(listId)
-                          .delete();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('List "${list['name']}" deleted')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error deleting list')),
-                      );
-                    }
-                  },
-                  child: Card(
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error deleting list')),
+                    );
+                  }
+                },
+                child: Card(
+                  elevation: 0,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                     color: Theme.of(context).brightness == Brightness.light
                         ? const Color(0xFFEEECF4)
-                        : const Color(0xFF0F0E17),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      title: Text(
-                        list['name'] ?? '',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Row(
-                        children: [
-                          FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(list['createdBy'])
-                                .get(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return const CircleAvatar(
-                                    radius: 12,
-                                    child: Icon(Icons.person, size: 12));
-                              }
-
-                              final userData =
-                                  snapshot.data!.data() as Map<String, dynamic>;
-                              final photoUrl = userData['photoURL'];
-
-                              return CircleAvatar(
-                                radius: 12,
-                                backgroundImage: photoUrl != null
-                                    ? NetworkImage(photoUrl)
-                                    : null,
-                                child: photoUrl == null
-                                    ? const Icon(Icons.person, size: 12)
-                                    : null,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 6),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.list, size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "List 0/${list['itemsCount'] ?? 0} Completed", // replace 0 with actual completed count later
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          list['isPinned'] == true
-                              ? Icons.favorite
-                              : Icons.favorite_outline,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        onPressed: () async {
-                          final groupId =
-                              Provider.of<GroupProvider>(context, listen: false)
-                                  .group
-                                  ?.id;
-                          final listId = list['id'];
-
-                          if (groupId != null && listId != null) {
-                            await FirebaseFirestore.instance
-                                .collection('groups')
-                                .doc(groupId)
-                                .collection('lists')
-                                .doc(listId)
-                                .update({
-                              'isPinned': !(list['isPinned'] ?? false),
-                            });
-                          }
-                        },
-                      ),
+                        : const Color(0xFF0F0E17),                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    title: Text(
+                      list['name'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                  ));
+                    subtitle: Row(
+                      children: [
+                        UserAvatar(userId: list['createdBy']),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.list, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          "List 0/${list['itemsCount'] ?? 0} Completed",
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        list['isPinned'] == true
+                            ? Icons.favorite
+                            : Icons.favorite_outline,
+                        color: theme.primary,
+                      ),
+                      onPressed: () async {
+                        await FirestoreUtils.listCollection(groupId)
+                            .doc(listId)
+                            .update({
+                          'isPinned': !(list['isPinned'] ?? false),
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              );
             },
           );
         },
