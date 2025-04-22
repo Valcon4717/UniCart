@@ -35,6 +35,7 @@ Future<void> register(String email, String password, String name) async {
         'uid': user.uid,
         'email': user.email,
         'name': name,
+        'photoURL': user.photoURL ?? '',
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

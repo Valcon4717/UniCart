@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 import '../controllers/theme_controller.dart';
 import '../providers/group_provider.dart';
+import '../views/grocery_list_screen.dart';
+import 'dart:io';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -41,6 +44,17 @@ Future<void> _pickAndUploadPhoto() async {
 
       setState(() {}); // Refresh UI
 
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      // Update Firestore (not just FirebaseAuth)
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'photoURL': downloadUrl});
+
+      // (Optional) Also update FirebaseAuth if you still want it
+      await user.updatePhotoURL(downloadUrl);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile photo updated!')),
       );
@@ -61,7 +75,7 @@ Future<void> _pickAndUploadPhoto() async {
   }
 
   final List<Widget> _screens = const [
-    Center(child: Text('Lists Page')),
+    GroceryListScreen(),
     Center(child: Text('Budget Page')),
     Center(child: Text('Split Page')),
   ];
@@ -104,33 +118,36 @@ Future<void> _pickAndUploadPhoto() async {
     return Scaffold(
       key: _scaffoldKey,
       drawer: Drawer(
-        child: SafeArea(
+      backgroundColor: _isDarkMode
+        ? const Color(0xFF0F0E17)
+        : const Color(0xFFEEECF4),
+      child: SafeArea(
+        child: Column(
+        children: [
+          Padding(
+          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 10),
           child: Column(
             children: [
-                Padding(
-                padding: EdgeInsets.symmetric(vertical: 24, horizontal: 10),
-                child: Column(
-                  children: [
-                  Center(
-                    child: GestureDetector(
-                      onTap: _pickAndUploadPhoto,
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundImage: user?.photoURL != null
-                            ? NetworkImage(user!.photoURL!)
-                            : null,
-                        child: user?.photoURL == null
-                            ? Icon(Icons.person, size: 40)
-                            : null,
-                      ),
-                    ),
-                  ),
-                  if (user?.displayName != null) ...[
-                    SizedBox(height: 8),
-                    Text(user!.displayName ?? 'User',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            Center(
+            child: GestureDetector(
+              onTap: _pickAndUploadPhoto,
+              child: CircleAvatar(
+              radius: 30,
+              backgroundImage: user?.photoURL != null
+                ? NetworkImage(user!.photoURL!)
+                : null,
+              child: user?.photoURL == null
+                ? Icon(Icons.person, size: 40)
+                : null,
+              ),
+            ),
+            ),
+            if (user?.displayName != null) ...[
+            SizedBox(height: 8),
+            Text(user!.displayName ?? 'User',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
                     ),
                     ),
                   ],
@@ -197,11 +214,10 @@ Future<void> _pickAndUploadPhoto() async {
           child: IconButton(
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             icon: CircleAvatar(
-              radius: 24, // Increase the radius to make the avatar bigger
               backgroundImage:
             user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
               child:
-            user?.photoURL == null ? Icon(Icons.person, size: 30) : null, // Adjust icon size accordingly
+            user?.photoURL == null ? Icon(Icons.person, size: 20) : null,
             ),
           ),
         ),
@@ -216,6 +232,9 @@ Future<void> _pickAndUploadPhoto() async {
         },
         surfaceTintColor: theme.surface,
         indicatorColor: theme.primaryContainer,
+        backgroundColor: _isDarkMode
+          ? const Color(0xFF0F0E17)
+          : const Color(0xFFEEECF4),
         destinations: [
           NavigationDestination(
             icon: IconTheme(
