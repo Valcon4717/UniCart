@@ -17,23 +17,25 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   bool _groupLoaded = false;
 
-  Future<void> _loadSavedGroup() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedGroupId = prefs.getString('currentGroupId');
+Future<void> _loadSavedGroup() async {
+  final prefs = await SharedPreferences.getInstance();
+  final savedGroupId = prefs.getString('currentGroupId');
 
-    if (savedGroupId != null) {
-      final groupDoc = await GroupService().getGroup(savedGroupId);
-      if (groupDoc.exists) {
-        Provider.of<GroupProvider>(context, listen: false).setGroup(groupDoc);
-      } else {
-        await prefs.remove('currentGroupId');
-      }
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (savedGroupId != null && currentUser != null) {
+    final groupService = GroupService(userId: currentUser.uid);
+    final groupDoc = await groupService.getGroup(savedGroupId);
+    if (groupDoc.exists) {
+      Provider.of<GroupProvider>(context, listen: false).setGroup(groupDoc);
+    } else {
+      await prefs.remove('currentGroupId');
     }
-
-    setState(() {
-      _groupLoaded = true;
-    });
   }
+
+  setState(() {
+    _groupLoaded = true;
+  });
+}
 
   @override
   void initState() {

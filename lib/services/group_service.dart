@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class GroupService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final String userId = FirebaseAuth.instance.currentUser!.uid;
+  final String userId;
+
+  GroupService({required this.userId});
 
   Future<String> createGroup(String groupName) async {
     final doc = await _db.collection('groups').add({
@@ -29,7 +30,6 @@ class GroupService {
 
       return doc;
     } catch (e) {
-      print("Error joining group: $e");
       return null;
     }
   }

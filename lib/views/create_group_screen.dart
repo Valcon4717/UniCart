@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +10,9 @@ import '../providers/group_provider.dart';
 class CreateGroupScreen extends StatelessWidget {
   final String groupId;
   final String groupName;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  const CreateGroupScreen({
+  CreateGroupScreen({
     super.key,
     required this.groupId,
     required this.groupName,
@@ -29,7 +31,7 @@ class CreateGroupScreen extends StatelessWidget {
   }
 
   Future<void> _finishSetup(BuildContext context) async {
-    final groupDoc = await GroupService().getGroup(groupId);
+    final groupDoc = await GroupService(userId: userId).getGroup(groupId);
     if (groupDoc.exists) {
       Provider.of<GroupProvider>(context, listen: false).setGroup(groupDoc);
       final prefs = await SharedPreferences.getInstance();

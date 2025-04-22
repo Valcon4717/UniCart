@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/group_provider.dart';
 import '../services/group_service.dart';
@@ -16,6 +17,7 @@ class JoinOrCreateGroupScreen extends StatefulWidget {
 class _JoinOrCreateGroupScreenState extends State<JoinOrCreateGroupScreen> {
   final _groupNameController = TextEditingController();
   final _groupCodeController = TextEditingController();
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
   String? _nameError;
   String? _codeError;
@@ -32,7 +34,7 @@ class _JoinOrCreateGroupScreenState extends State<JoinOrCreateGroupScreen> {
     final groupName = _groupNameController.text.trim();
     if (groupName.isEmpty) return;
 
-    final groupService = GroupService();
+    final groupService = GroupService(userId: userId);
     final groupId = await groupService.createGroup(groupName);
 
     Navigator.push(
@@ -59,7 +61,7 @@ class _JoinOrCreateGroupScreenState extends State<JoinOrCreateGroupScreen> {
     });
 
     try {
-      final groupService = GroupService();
+      final groupService = GroupService(userId: userId);
       final groupDoc = await groupService.joinGroup(code);
 
       if (groupDoc != null) {
@@ -71,7 +73,6 @@ class _JoinOrCreateGroupScreenState extends State<JoinOrCreateGroupScreen> {
         setState(() => _codeError = 'Group not found.');
       }
     } catch (e) {
-      print('Error joining group: $e');
       setState(
           () => _codeError = 'Unable to join group. Please check the code.');
     } finally {

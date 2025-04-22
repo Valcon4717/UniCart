@@ -64,7 +64,7 @@ class UniCartApp extends StatelessWidget {
         '/budget': (context) => const BudgetScreen(),
         '/split': (context) => const SplitScreen(),
         '/settings': (context) => const SettingsScreen(),
-        '/create-group': (context) => const CreateGroupScreen( 
+        '/create-group': (context) => CreateGroupScreen( 
           groupId: '',
           groupName: '',
         ),

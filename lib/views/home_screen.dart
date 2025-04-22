@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 import '../controllers/theme_controller.dart';
 import '../providers/group_provider.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,6 +17,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   bool _isDarkMode = false;
+
+  // Future<void> _pickAndUploadPhoto() async {
+  //   final picker = ImagePicker();
+  //   final user = FirebaseAuth.instance.currentUser;
+
+  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  //   if (pickedFile == null || user == null) return;
+
+  //   final file = File(pickedFile.path);
+  //   final storageRef = FirebaseStorage.instance
+  //       .ref()
+  //       .child('user_profiles/${user.uid}/profile.jpg');
+
+  //   final uploadTask = await storageRef.putFile(file);
+  //   final photoURL = await uploadTask.ref.getDownloadURL();
+
+  //   await user.updatePhotoURL(photoURL);
+  //   await user.reload();
+
+  //   setState(() {}); // Update UI
+  // }
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -73,20 +96,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                   Center(
-                    child: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: user?.photoURL != null
-                      ? NetworkImage(user!.photoURL!)
-                      : null,
-                    child: user?.photoURL == null
-                      ? Icon(Icons.person, size: 40)
-                      : null,
-                    ),
+                    // child: GestureDetector(
+                      // onTap: _pickAndUploadPhoto,
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundImage: user?.photoURL != null
+                            ? NetworkImage(user!.photoURL!)
+                            : null,
+                        child: user?.photoURL == null
+                            ? Icon(Icons.person, size: 40)
+                            : null,
+                      ),
+                    // ),
                   ),
                   if (user?.displayName != null) ...[
                     SizedBox(height: 8),
-                    Text(
-                    user!.displayName!,
+                    Text(user!.displayName ?? 'User',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -146,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
             'Group ID: $groupId',
             style: TextStyle(
           fontSize: 12,
-          color: theme.onSurface.withOpacity(0.5),
+          color: theme.onSurface,
             ),
           ),
           ],

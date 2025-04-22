@@ -15,8 +15,7 @@ class ManageGroupsScreen extends StatefulWidget {
 }
 
 class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
-  final GroupService _groupService = GroupService();
-  final String userId = FirebaseAuth.instance.currentUser!.uid;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
   List<DocumentSnapshot> _groups = [];
   bool _isLoading = true;
@@ -29,7 +28,7 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
   }
 
   Future<void> _fetchGroups() async {
-    final groups = await _groupService.getUserGroups();
+    final groups = await GroupService(userId: userId).getUserGroups();
     final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
     setState(() {
       _groups = groups;

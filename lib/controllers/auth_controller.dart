@@ -21,32 +21,30 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> register(String email, String password, String name) async {
+Future<void> register(String email, String password, String name) async {
+  try {
+    error = null;
+    final credential = await authService.register(email, password);
+    final user = credential.user;
 
-      // Save to Firestore
-      try {
-        error = null;
-        final credential = await authService.register(email, password);
-        final user = credential.user;
+    if (user != null) {
+      // Set display name
+      await user.updateDisplayName(name);
+      await user.reload();
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'email': user.email,
+        'name': name,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
 
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-            'uid': user.uid,
-            'email': user.email,
-            'name': name,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-
-        notifyListeners();
-      } on FirebaseAuthException catch (e) {
-        error = e.message;
-        notifyListeners();
-      }
+    notifyListeners();
+  } on FirebaseAuthException catch (e) {
+    error = e.message;
+    notifyListeners();
   }
+}
 
   void logout() {
     authService.logout();
