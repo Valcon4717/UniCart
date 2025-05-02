@@ -1,7 +1,7 @@
 // lib/widgets/user_avatar.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../services/firestore_utils.dart';
+import 'firestore_utils.dart';
 
 class UserAvatar extends StatelessWidget {
   final String userId;

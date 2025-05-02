@@ -69,9 +69,7 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
 
   Future<void> _leaveGroup(String groupId) async {
     try {
-      await FirebaseFirestore.instance.collection('groups').doc(groupId).update({
-        'members': FieldValue.arrayRemove([userId])
-      });
+      await GroupService(userId: userId).leaveGroup(groupId);
 
       final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
       if (currentGroup?.id == groupId) {
@@ -96,7 +94,7 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
 
   Future<void> _deleteGroup(String groupId) async {
     try {
-      await FirebaseFirestore.instance.collection('groups').doc(groupId).delete();
+      await GroupService(userId: userId).deleteGroup(groupId);
 
       final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
       if (currentGroup?.id == groupId) {

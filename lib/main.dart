@@ -11,7 +11,7 @@ import 'views/landing_screen.dart';
 import 'views/login_screen.dart';
 import 'views/onboarding_screen.dart';
 import 'views/register_screen.dart';
-import 'widgets/auth_gate.dart';
+import 'utils/auth_gate.dart';
 import 'views/home_screen.dart';
 import 'views/budget_screen.dart';
 import 'views/split_screen.dart';
@@ -19,6 +19,9 @@ import 'views/settings_screen.dart';
 import 'views/create_group_screen.dart';
 import 'views/manage_groups_screen.dart';
 import 'views/join_or_create_group_screen.dart';
+import 'views/grocery_item_screen.dart';
+import 'providers/grocery_item_provider.dart';
+import 'services/grocery_item_service.dart';
 
 /// The main function initializes Firebase and sets up providers for a Flutter application.
 Future<void> main() async {
@@ -70,6 +73,10 @@ class UniCartApp extends StatelessWidget {
         ),
         '/join-or-create-group': (context) => const JoinOrCreateGroupScreen(),
         '/manage-groups': (context) => const ManageGroupsScreen(),
+        '/grocery-items': (context) => ChangeNotifierProvider(
+          create: (_) => GroceryItemProvider(groceryItemService: GroceryItemService()),
+          child: GroceryItemScreen(),
+        ),
       },
     );
   }

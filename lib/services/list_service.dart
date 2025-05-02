@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class GroceryService {
+class ListService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// Fetch all grocery lists for a group

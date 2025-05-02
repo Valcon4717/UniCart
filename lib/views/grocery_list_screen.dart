@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/grocery_service.dart';
-import '../services/firestore_utils.dart';
+import '../services/list_service.dart';
+import '../utils/firestore_utils.dart';
 import '../providers/group_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/user_avatar.dart';
+import '../utils/user_avatar.dart';
 
 class GroceryListScreen extends StatelessWidget {
   const GroceryListScreen({super.key});
@@ -43,7 +43,7 @@ class GroceryListScreen extends StatelessWidget {
               final desc = descriptionController.text.trim();
 
               if (name.isNotEmpty) {
-                await GroceryService().createList(
+                await ListService().createList(
                   groupId: groupId,
                   name: name,
                   description: desc,
@@ -67,7 +67,7 @@ class GroceryListScreen extends StatelessWidget {
     final groupName = groupDoc?.get('name') ?? 'UniCart';
     final theme = Theme.of(context).colorScheme;
 
-    // TO DO: Add picture when there is no 
+    // TO DO: Add picture when there is no
     if (groupId == null) {
       return const Center(child: Text("No group selected."));
     }
@@ -75,7 +75,7 @@ class GroceryListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.surface,
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: GroceryService().getLists(groupId),
+        stream: ListService().getLists(groupId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -122,8 +122,8 @@ class GroceryListScreen extends StatelessWidget {
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text("Delete List"),
-                    content:
-                        const Text("Are you sure you want to delete this list?"),
+                    content: const Text(
+                        "Are you sure you want to delete this list?"),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(false),
@@ -143,8 +143,7 @@ class GroceryListScreen extends StatelessWidget {
                         .delete();
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('List "${list['name']}" deleted')),
+                      SnackBar(content: Text('List "${list['name']}" deleted')),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -158,9 +157,20 @@ class GroceryListScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? const Color(0xFFEEECF4)
-                        : const Color(0xFF0F0E17),                  child: ListTile(
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? const Color(0xFFEEECF4)
+                      : const Color(0xFF0F0E17),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/grocery-items',
+                        arguments: {
+                          'listId': listId,
+                          'listName': list['name'],
+                        },
+                      );
+                    },
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     title: Text(

@@ -38,12 +38,21 @@ class GroupService {
     return _db.collection('groups').doc(groupId).get();
   }
 
-  /// Optional: Get all groups the current user is a member of
   Future<List<DocumentSnapshot>> getUserGroups() async {
     final snapshot = await _db
         .collection('groups')
         .where('members', arrayContains: userId)
-        .get();
+        .get(); 
     return snapshot.docs;
+  }
+
+  Future<void> leaveGroup(String groupId) async {
+    await _db.collection('groups').doc(groupId).update({
+      'members': FieldValue.arrayRemove([userId]),
+    });
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    await _db.collection('groups').doc(groupId).delete();
   }
 }
