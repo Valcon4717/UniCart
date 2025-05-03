@@ -1,94 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/grocery_item_provider.dart';
-import '../providers/group_provider.dart';
 import '../utils/grocery_item_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class GroceryItemScreen extends StatefulWidget {
-  const GroceryItemScreen({super.key});
+  final String listName;
+
+  const GroceryItemScreen({super.key, required this.listName});
 
   @override
   State<GroceryItemScreen> createState() => _GroceryItemScreenState();
 }
 
 class _GroceryItemScreenState extends State<GroceryItemScreen> {
-  late GroceryItemProvider groceryItemProvider;
-
+  // Use a nullable variable instead of late
+  GroceryItemProvider? _groceryItemProvider;
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-    groceryItemProvider = Provider.of<GroceryItemProvider>(context, listen: false);
-
-    final groupId = groupProvider.group?.id;
-    final listId = groceryItemProvider.listId;
-
-    if (groupId != null && listId != null) {
-      groceryItemProvider.setGroupAndList(groupId: groupId, listId: listId);
-    }
+    // Only initialize if it hasn't been initialized yet
+    _groceryItemProvider ??= Provider.of<GroceryItemProvider>(context, listen: false);
   }
 
   @override
   void dispose() {
-    groceryItemProvider.clear(); // <-- safely use it here now
+    // Use the stored reference with null check
+    _groceryItemProvider?.clear();
     super.dispose();
   }
+  
+  void _showAddItemDialog(BuildContext context) {
+    // Store a reference to the parent context that has access to the provider
+    final parentContext = context;
+    final nameController = TextEditingController();
+    final quantityController = TextEditingController();
+    final priceController = TextEditingController();
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-void _showAddItemDialog(BuildContext context) {
-  final nameController = TextEditingController();
-  final quantityController = TextEditingController();
-  final priceController = TextEditingController();
-  final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Add Grocery Item"),
-      content: SingleChildScrollView(
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: quantityController,
-              decoration: const InputDecoration(labelText: 'Quantity'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Add Grocery Item"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final quantity = int.tryParse(quantityController.text.trim()) ?? 1;
+              final price = double.tryParse(priceController.text.trim()) ?? 0.0;
+
+              if (name.isNotEmpty) {
+                // Use the parent context method for dialog
+                await Provider.of<GroceryItemProvider>(parentContext, listen: false)
+                    .addItem(name, quantity, price, userId);
+              }
+
+              Navigator.pop(dialogContext);
+            },
+            child: const Text("Add"),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            final name = nameController.text.trim();
-            final quantity = int.tryParse(quantityController.text.trim()) ?? 1;
-            final price = double.tryParse(priceController.text.trim()) ?? 0.0;
-
-            if (name.isNotEmpty) {
-              await Provider.of<GroceryItemProvider>(context, listen: false)
-                  .addItem(name, quantity, price, userId);
-            }
-
-            Navigator.pop(context);
-          },
-          child: const Text("Add"),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +147,8 @@ void _showAddItemDialog(BuildContext context) {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemDialog(context),
         backgroundColor: theme.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        shape: const CircleBorder(),
+        child: Icon(Icons.add, color: theme.surface),
       ),
     );
   }

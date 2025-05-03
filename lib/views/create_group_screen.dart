@@ -147,8 +147,8 @@ class CreateGroupScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _finishSetup(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: theme.tertiary,
-                foregroundColor: theme.onSurface,
+                backgroundColor: theme.primary,
+                foregroundColor: theme.onPrimary,
                 minimumSize: Size.fromHeight(48),
               ),
               child: Text(

@@ -22,7 +22,7 @@ class GroceryItemService {
   }
   
   /// Add a new item
-  Future<void> addItem({
+  Future<DocumentReference> addItem({
     required String groupId,
     required String listId,
     required String name,
@@ -34,7 +34,7 @@ class GroceryItemService {
   }) async {
     final now = Timestamp.now();
 
-    await _db
+    return await _db
         .collection('groups')
         .doc(groupId)
         .collection('lists')

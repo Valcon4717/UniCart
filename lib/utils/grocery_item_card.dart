@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/grocery_item_provider.dart';
 import '../services/grocery_item_service.dart';
+import '../utils/user_avatar.dart';
 
 class GroceryItemCard extends StatefulWidget {
   final Map<String, dynamic> item;
@@ -12,18 +13,16 @@ class GroceryItemCard extends StatefulWidget {
 }
 
 class _GroceryItemCardState extends State<GroceryItemCard> {
-  bool _expanded = false;
   final GroceryItemService _groceryItemService = GroceryItemService();
 
   void _toggleBought() async {
-    final groupId = Provider.of<GroceryItemProvider>(context, listen: false).groupId;
-    final listId = Provider.of<GroceryItemProvider>(context, listen: false).listId;
+    final provider = Provider.of<GroceryItemProvider>(context, listen: false);
     final itemId = widget.item['id'];
 
-    if (groupId != null && listId != null && itemId != null) {
+    if (itemId != null) {
       await _groceryItemService.toggleBought(
-        groupId: groupId,
-        listId: listId,
+        groupId: provider.groupId,
+        listId: provider.listId,
         itemId: itemId,
         currentStatus: widget.item['bought'] ?? false,
       );
@@ -31,17 +30,37 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
   }
 
   void _deleteItem() async {
-    final groupId = Provider.of<GroceryItemProvider>(context, listen: false).groupId;
-    final listId = Provider.of<GroceryItemProvider>(context, listen: false).listId;
+    final provider = Provider.of<GroceryItemProvider>(context, listen: false);
     final itemId = widget.item['id'];
 
-    if (groupId != null && listId != null && itemId != null) {
+    if (itemId != null) {
       await _groceryItemService.deleteItem(
-        groupId: groupId,
-        listId: listId,
+        groupId: provider.groupId,
+        listId: provider.listId,
         itemId: itemId,
       );
     }
+  }
+
+  Widget _detailText(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,9 +71,12 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
       key: ValueKey(widget.item['id']),
       direction: DismissDirection.endToStart,
       background: Container(
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.red,
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       confirmDismiss: (_) async {
@@ -79,54 +101,130 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
       onDismissed: (_) => _deleteItem(),
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
-        elevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        color: theme.surfaceVariant.withOpacity(0.5),
-        child: InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      value: widget.item['bought'] ?? false,
-                      onChanged: (_) => _toggleBought(),
-                      activeColor: theme.primary,
-                    ),
-                    Expanded(
-                      child: Text(
-                        widget.item['name'] ?? '',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        // TODO: Handle edit item popup
-                      },
-                    ),
-                    CircleAvatar(
-                      radius: 14,
-                      child: const Icon(Icons.person, size: 16),
-                      // TODO: Load addedBy profile picture if available
-                    )
-                  ],
-                ),
-                if (_expanded) ...[
-                  const SizedBox(height: 8),
-                  Text("Brand: ${widget.item['brand'] ?? ''}"),
-                  Text("Quantity: ${widget.item['quantity'] ?? 1}"),
-                  Text("Size: ${widget.item['size'] ?? ''}"),
-                  Text("Price: \$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
-                ]
-              ],
-            ),
+        color: Theme.of(context).brightness == Brightness.light
+            ? const Color(0xFFEEECF4)
+            : const Color(0xFF0F0E17),
+        child: ExpansionTile(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          collapsedShape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          leading: Checkbox(
+            value: widget.item['bought'] ?? false,
+            onChanged: (_) => _toggleBought(),
+            activeColor: theme.primary,
           ),
+          title: Text(
+            widget.item['name'] ?? '',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          trailing: widget.item['addedBy'] != null
+              ? UserAvatar(userId: widget.item['addedBy'], radius: 14)
+              : const CircleAvatar(
+                  radius: 14, child: Icon(Icons.person, size: 16)),
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if ((widget.item['brand'] ?? '').isNotEmpty)
+                  _detailText("Brand", widget.item['brand']),
+                _detailText("Quantity", "${widget.item['quantity'] ?? 1}"),
+                if ((widget.item['size'] ?? '').isNotEmpty)
+                  _detailText("Size", widget.item['size']),
+                _detailText("Cost",
+                    "\$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    final nameController =
+                        TextEditingController(text: widget.item['name']);
+                    final quantityController = TextEditingController(
+                        text: widget.item['quantity']?.toString() ?? '1');
+                    final priceController = TextEditingController(
+                        text: widget.item['price']?.toString() ?? '0.0');
+
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text("Edit Item"),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: nameController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Name'),
+                            ),
+                            TextField(
+                              controller: quantityController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Quantity'),
+                              keyboardType: TextInputType.number,
+                            ),
+                            TextField(
+                              controller: priceController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Price'),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final updatedName = nameController.text.trim();
+                              final updatedQuantity = int.tryParse(
+                                      quantityController.text.trim()) ??
+                                  1;
+                              final updatedPrice = double.tryParse(
+                                      priceController.text.trim()) ??
+                                  0.0;
+
+                              final groupId = Provider.of<GroceryItemProvider>(
+                                      context,
+                                      listen: false)
+                                  .groupId;
+                              final listId = Provider.of<GroceryItemProvider>(
+                                      context,
+                                      listen: false)
+                                  .listId;
+                              final itemId = widget.item['id'];
+
+                              await _groceryItemService.updateItem(
+                                groupId: groupId,
+                                listId: listId,
+                                itemId: itemId,
+                                updates: {
+                                  'name': updatedName,
+                                  'quantity': updatedQuantity,
+                                  'price': updatedPrice,
+                                },
+                              );
+
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text("Save"),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );

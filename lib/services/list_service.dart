@@ -26,8 +26,9 @@ class ListService {
     final now = Timestamp.now();
 
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(createdBy).get();
-    final createdByName = userDoc['name'];
-    final createdByPhoto = userDoc['photoURL'];
+
+    final createdByName = userDoc.exists ? userDoc['name'] ?? '' : '';
+    final createdByPhoto = userDoc.exists ? userDoc['photoURL'] ?? '' : '';
 
     await _db.collection('groups').doc(groupId).collection('lists').add({
       'name': name,

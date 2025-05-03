@@ -113,9 +113,12 @@ class GroceryListScreen extends StatelessWidget {
                 key: ValueKey(listId),
                 direction: DismissDirection.endToStart,
                 background: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  color: Colors.red,
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 confirmDismiss: (_) async => await showDialog(
@@ -152,7 +155,8 @@ class GroceryListScreen extends StatelessWidget {
                   }
                 },
                 child: Card(
-                  elevation: 0,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.3),
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -166,6 +170,7 @@ class GroceryListScreen extends StatelessWidget {
                         context,
                         '/grocery-items',
                         arguments: {
+                          'groupId': groupId,
                           'listId': listId,
                           'listName': list['name'],
                         },
@@ -179,7 +184,13 @@ class GroceryListScreen extends StatelessWidget {
                     ),
                     subtitle: Row(
                       children: [
-                        UserAvatar(userId: list['createdBy']),
+                        if (list['createdBy'] != null && (list['createdBy'] as String).isNotEmpty)
+                          UserAvatar(userId: list['createdBy'], radius: 14)
+                        else
+                          const CircleAvatar(
+                            radius: 14,
+                            child: Icon(Icons.person, size: 16),
+                          ),
                         const SizedBox(width: 8),
                         const Icon(Icons.list, size: 14),
                         const SizedBox(width: 4),
@@ -187,6 +198,12 @@ class GroceryListScreen extends StatelessWidget {
                           "List 0/${list['itemsCount'] ?? 0} Completed",
                           style: const TextStyle(fontSize: 13),
                         ),
+                      
+                    
+                      Text(
+                        "List 0/${list['itemsCount'] ?? 0} Completed",
+                        style: const TextStyle(fontSize: 13),
+                      ),
                       ],
                     ),
                     trailing: IconButton(
@@ -213,7 +230,7 @@ class GroceryListScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddListDialog(context, groupId),
-        backgroundColor: theme.tertiary,
+        backgroundColor: theme.primary,
         shape: const CircleBorder(),
         child: Icon(Icons.add, color: theme.surface),
       ),

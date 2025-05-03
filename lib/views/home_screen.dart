@@ -17,20 +17,25 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   bool _isDarkMode = false;
 
-  Future<void> _pickAndUploadPhoto() async {
-    final userService = UserService();
-    try {
-      await userService.uploadProfilePhoto();
-      setState(() {}); // Refresh UI
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile photo updated!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e')),
-      );
-    }
+Future<void> _pickAndUploadPhoto() async {
+  final userService = UserService();
+  try {
+    final photoUrl = await userService.uploadProfilePhoto();
+
+    final user = FirebaseAuth.instance.currentUser;
+    await user?.updatePhotoURL(photoUrl);
+    await user?.reload();
+
+    setState(() {}); // Refresh UI
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile photo updated!')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Upload failed: $e')),
+    );
   }
+}
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();

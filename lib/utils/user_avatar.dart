@@ -14,13 +14,29 @@ class UserAvatar extends StatelessWidget {
     return FutureBuilder<DocumentSnapshot>(
       future: FirestoreUtils.userDoc(userId).get(),
       builder: (context, snapshot) {
-        final photoUrl = snapshot.data?.get('photoURL');
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData &&
+            snapshot.data!.exists) {
+          final doc = snapshot.data!;
+          final photoUrl = doc.data() is Map && (doc.data() as Map).containsKey('photoURL')
+              ? doc.get('photoURL')
+              : null;
 
+          return CircleAvatar(
+            radius: radius,
+            backgroundImage: photoUrl != null && photoUrl != ''
+                ? NetworkImage(photoUrl)
+                : null,
+            child: (photoUrl == null || photoUrl == '')
+                ? const Icon(Icons.person, size: 12)
+                : null,
+          );
+        }
+
+        // fallback when doc doesn't exist or is loading
         return CircleAvatar(
           radius: radius,
-          backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-          child:
-              photoUrl == null ? const Icon(Icons.person, size: 12) : null,
+          child: const Icon(Icons.person, size: 12),
         );
       },
     );

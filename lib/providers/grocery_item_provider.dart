@@ -4,9 +4,9 @@ import '../services/grocery_item_service.dart';
 
 class GroceryItemProvider extends ChangeNotifier {
   final GroceryItemService _groceryItemService;
+  final String groupId;
+  final String listId;
 
-  String? groupId;
-  String? listId;
   bool isLoading = false;
 
   List<Map<String, dynamic>> _items = [];
@@ -14,47 +14,32 @@ class GroceryItemProvider extends ChangeNotifier {
 
   StreamSubscription? _subscription;
 
-  GroceryItemProvider({required GroceryItemService groceryItemService})
-      : _groceryItemService = groceryItemService;
-
-  void setGroupAndList({required String groupId, required String listId}) {
-    this.groupId = groupId;
-    this.listId = listId;
-    _subscribe();
+  GroceryItemProvider({
+    required GroceryItemService groceryItemService,
+    required this.groupId,
+    required this.listId,
+  }) : _groceryItemService = groceryItemService {
+    _subscribe(); // auto-subscribe when created
   }
 
   void _subscribe() {
-    if (groupId == null || listId == null) return;
     isLoading = true;
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription =
-        _groceryItemService.getItems(groupId!, listId!).listen((fetchedItems) {
+    _subscription = _groceryItemService
+        .getItems(groupId, listId)
+        .listen((fetchedItems) {
       _items = fetchedItems;
       isLoading = false;
       notifyListeners();
     });
   }
 
-  Future<void> addItem(
-      String name, int quantity, double price, String addedBy) async {
-    if (groupId == null || listId == null) return;
-
-    final now = DateTime.now();
-
-    final newItem = {
-      'name': name,
-      'quantity': quantity,
-      'price': price,
-      'addedBy': addedBy,
-      'bought': false,
-      'createdAt': now,
-    };
-
+  Future<void> addItem(String name, int quantity, double price, String addedBy) async {
     await _groceryItemService.addItem(
-      groupId: groupId!,
-      listId: listId!,
+      groupId: groupId,
+      listId: listId,
       name: name,
       quantity: quantity,
       price: price,
@@ -63,9 +48,17 @@ class GroceryItemProvider extends ChangeNotifier {
     refresh();
   }
 
-  void refresh() {
-    _subscribe();
+  Future<void> updateItem(String itemId, Map<String, dynamic> updates) async {
+    await _groceryItemService.updateItem(
+      groupId: groupId,
+      listId: listId,
+      itemId: itemId,
+      updates: updates,
+    );
+    refresh();
   }
+
+  void refresh() => _subscribe();
 
   void clear() {
     _items = [];
