@@ -1,11 +1,8 @@
-// lib/services/grocery_item_service.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GroceryItemService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// Stream all items in a list, sorted with unbought first
   Stream<List<Map<String, dynamic>>> getItems(String groupId, String listId) {
     return _db
         .collection('groups')
@@ -13,45 +10,70 @@ class GroceryItemService {
         .collection('lists')
         .doc(listId)
         .collection('items')
-        .orderBy('bought')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => {...doc.data(), 'id': doc.id})
-            .toList());
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            return {
+              'id': doc.id,
+              'name': data['name'] ?? '',
+              'quantity': data['quantity'] ?? 0,
+              'price': data['price'] ?? 0.0,
+              'addedBy': data['addedBy'] ?? '',
+              'addedByName': data['addedByName'] ?? '',
+              'addedByPhoto': data['addedByPhoto'] ?? '',
+              'createdAt': data['createdAt']?.toDate() ?? DateTime.now(),
+            };
+          }).toList();
+        });
   }
-  
-  /// Add a new item
-  Future<DocumentReference> addItem({
+
+  Future<void> addItem({
     required String groupId,
     required String listId,
     required String name,
+    required int quantity,
+    required double price,
     required String addedBy,
-    String? brand,
-    int quantity = 1,
-    String? size,
-    double? price,
   }) async {
-    final now = Timestamp.now();
+    // Get current user data to include in the item
+    final userDoc = await _db.collection('users').doc(addedBy).get();
+    final userData = userDoc.data() ?? {};
+    
+    final addedByName = userData['name'] ?? '';
+    final addedByPhoto = userData['photoURL'] ?? '';
 
-    return await _db
+    final timestamp = FieldValue.serverTimestamp();
+    
+    // Update the item count in the list document
+    await _db
+        .collection('groups')
+        .doc(groupId)
+        .collection('lists')
+        .doc(listId)
+        .update({
+          'itemsCount': FieldValue.increment(1),
+          'lastUpdated': timestamp,
+        });
+    
+    // Add the item with user data
+    await _db
         .collection('groups')
         .doc(groupId)
         .collection('lists')
         .doc(listId)
         .collection('items')
         .add({
-      'name': name,
-      'brand': brand ?? '',
-      'quantity': quantity,
-      'size': size ?? '',
-      'price': price ?? 0.0,
-      'addedBy': addedBy,
-      'bought': false,
-      'createdAt': now,
-    });
+          'name': name,
+          'quantity': quantity,
+          'price': price,
+          'addedBy': addedBy,
+          'addedByName': addedByName,
+          'addedByPhoto': addedByPhoto,
+          'createdAt': timestamp,
+        });
   }
-
   /// Update an existing item
   Future<void> updateItem({
     required String groupId,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/grocery_item_provider.dart';
 import '../services/grocery_item_service.dart';
-import '../utils/user_avatar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GroceryItemCard extends StatefulWidget {
   final Map<String, dynamic> item;
@@ -125,10 +125,7 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
             widget.item['name'] ?? '',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          trailing: widget.item['addedBy'] != null
-              ? UserAvatar(userId: widget.item['addedBy'], radius: 14)
-              : const CircleAvatar(
-                  radius: 14, child: Icon(Icons.person, size: 16)),
+          trailing: buildItemAvatar(widget.item),
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -229,4 +226,50 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
       ),
     );
   }
+}
+
+Widget buildItemAvatar(Map<String, dynamic> item) {
+  final userId = item['addedBy'];
+  final photoUrl = item['addedByPhoto'];
+
+  if (photoUrl != null && photoUrl.isNotEmpty) {
+    return CircleAvatar(
+      radius: 14,
+      backgroundImage: NetworkImage(photoUrl),
+      child: _prefetchLatestAvatar(userId),
+    );
+  }
+
+  return StreamBuilder<DocumentSnapshot>(
+    stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+    builder: (context, snapshot) {
+      final data = snapshot.data?.data() as Map<String, dynamic>?;
+
+      if (data != null && data['photoURL'] != null && data['photoURL'].toString().isNotEmpty) {
+        return CircleAvatar(
+          radius: 14,
+          backgroundImage: NetworkImage(data['photoURL']),
+        );
+      }
+
+      return const CircleAvatar(
+        radius: 14,
+        child: Icon(Icons.person, size: 16),
+      );
+    },
+  );
+}
+
+Widget _prefetchLatestAvatar(String userId) {
+  return Opacity(
+    opacity: 0,
+    child: SizedBox(
+      width: 1,
+      height: 1,
+      child: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+        builder: (context, snapshot) => const SizedBox.shrink(),
+      ),
+    ),
+  );
 }

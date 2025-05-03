@@ -5,6 +5,7 @@ import '../utils/firestore_utils.dart';
 import '../providers/group_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/user_avatar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GroceryListScreen extends StatelessWidget {
   const GroceryListScreen({super.key});
@@ -184,13 +185,7 @@ class GroceryListScreen extends StatelessWidget {
                     ),
                     subtitle: Row(
                       children: [
-                        if (list['createdBy'] != null && (list['createdBy'] as String).isNotEmpty)
-                          UserAvatar(userId: list['createdBy'], radius: 14)
-                        else
-                          const CircleAvatar(
-                            radius: 14,
-                            child: Icon(Icons.person, size: 16),
-                          ),
+                        _buildListAvatar(list),
                         const SizedBox(width: 8),
                         const Icon(Icons.list, size: 14),
                         const SizedBox(width: 4),
@@ -198,12 +193,6 @@ class GroceryListScreen extends StatelessWidget {
                           "List 0/${list['itemsCount'] ?? 0} Completed",
                           style: const TextStyle(fontSize: 13),
                         ),
-                      
-                    
-                      Text(
-                        "List 0/${list['itemsCount'] ?? 0} Completed",
-                        style: const TextStyle(fontSize: 13),
-                      ),
                       ],
                     ),
                     trailing: IconButton(
@@ -233,6 +222,39 @@ class GroceryListScreen extends StatelessWidget {
         backgroundColor: theme.primary,
         shape: const CircleBorder(),
         child: Icon(Icons.add, color: theme.surface),
+      ),
+    );
+  }
+
+  Widget _buildListAvatar(Map<String, dynamic> list) {
+    final userId = list['createdBy'];
+    final photoUrl = list['createdByPhoto'];
+
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 14,
+        backgroundImage: NetworkImage(photoUrl),
+        child: _prefetchLatestAvatar(userId),
+      );
+    }
+
+    return UserAvatar(
+      userId: userId,
+      radius: 14,
+      useStream: true,
+    );
+  }
+
+  Widget _prefetchLatestAvatar(String userId) {
+    return Opacity(
+      opacity: 0,
+      child: SizedBox(
+        width: 1,
+        height: 1,
+        child: StreamBuilder(
+          stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+          builder: (context, snapshot) => const SizedBox.shrink(),
+        ),
       ),
     );
   }

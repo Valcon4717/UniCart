@@ -6,42 +6,59 @@ import 'package:image_picker/image_picker.dart';
 
 class UserService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ImagePicker _picker = ImagePicker();
 
-  Future<String> uploadProfilePhoto() async {
+  Future<String?> uploadProfilePhoto() async {
     final user = _auth.currentUser;
-    if (user == null) throw Exception("No user logged in");
+    if (user == null) return null;
 
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile == null) throw Exception("No image selected");
+    // Pick image
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
 
-    final file = File(pickedFile.path);
-    final ref = _storage.ref().child('user_profiles/${user.uid}/profile.jpg');
+    if (pickedFile == null) return null;
 
-    final uploadTask = await ref.putFile(file);
-    if (uploadTask.state == TaskState.success) {
-      final photoUrl = await ref.getDownloadURL();
-      await user.updatePhotoURL(photoUrl);
-      final userDocRef = _firestore.collection('users').doc(user.uid);
-      final userDoc = await userDocRef.get();
+    try {
+      // Upload to storage
+      final file = File(pickedFile.path);
+      final ext = pickedFile.path.split('.').last;
+      final storageRef =
+          _storage.ref().child('user_profiles/${user.uid}/profile.$ext');
+      final uploadTask = storageRef.putFile(file);
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      if (userDoc.exists) {
-        await userDocRef.update({'photoURL': photoUrl});
-      } else {
-        await userDocRef.set({
-          'uid': user.uid,
-          'email': user.email,
-          'name': user.displayName ?? '',
-          'photoURL': photoUrl,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      await user.reload();
-      return photoUrl;
-    } else {
-      throw Exception('Failed to upload photo');
+      // Update Firestore user document
+      await _db.collection('users').doc(user.uid).update({
+        'photoURL': downloadUrl,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+
+      // Update Auth user profile
+      await user.updatePhotoURL(downloadUrl);
+
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading profile photo: $e');
+      return null;
+    }
+  }
+
+  Stream<DocumentSnapshot> getUserStream(String userId) {
+    return _db.collection('users').doc(userId).snapshots();
+  }
+
+  Future<Map<String, dynamic>?> getUserData(String userId) async {
+    try {
+      final doc = await _db.collection('users').doc(userId).get();
+      return doc.data();
+    } catch (e) {
+      print('Error getting user data: $e');
+      return null;
     }
   }
 }
