@@ -45,18 +45,19 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
   Widget _detailText(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
+            '$label: ',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14),
-            textAlign: TextAlign.center,
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -123,31 +124,50 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
           ),
           title: Text(
             widget.item['name'] ?? '',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           trailing: buildItemAvatar(widget.item),
           children: [
+            if ((widget.item['image'] ?? '').isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      widget.item['image'],
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if ((widget.item['brand'] ?? '').isNotEmpty)
-                  _detailText("Brand", widget.item['brand']),
-                _detailText("Quantity", "${widget.item['quantity'] ?? 1}"),
-                if ((widget.item['size'] ?? '').isNotEmpty)
-                  _detailText("Size", widget.item['size']),
-                _detailText("Cost",
-                    "\$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
-                const Spacer(),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((widget.item['brand'] ?? '').isNotEmpty)
+                        _detailText("Brand", widget.item['brand']),
+                      _detailText("Quantity", "${widget.item['quantity'] ?? 1}"),
+                      if ((widget.item['size'] ?? '').isNotEmpty)
+                        _detailText("Size", widget.item['size']),
+                      _detailText("Cost", "\$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
+                    ],
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
-                    final nameController =
-                        TextEditingController(text: widget.item['name']);
+                    final nameController = TextEditingController(text: widget.item['name']);
                     final quantityController = TextEditingController(
                         text: widget.item['quantity']?.toString() ?? '1');
                     final priceController = TextEditingController(
                         text: widget.item['price']?.toString() ?? '0.0');
-
                     showDialog(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -157,19 +177,16 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                           children: [
                             TextField(
                               controller: nameController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Name'),
+                              decoration: const InputDecoration(labelText: 'Name'),
                             ),
                             TextField(
                               controller: quantityController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Quantity'),
+                              decoration: const InputDecoration(labelText: 'Quantity'),
                               keyboardType: TextInputType.number,
                             ),
                             TextField(
                               controller: priceController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Price'),
+                              decoration: const InputDecoration(labelText: 'Price'),
                               keyboardType: TextInputType.number,
                             ),
                           ],
@@ -182,23 +199,13 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                           ElevatedButton(
                             onPressed: () async {
                               final updatedName = nameController.text.trim();
-                              final updatedQuantity = int.tryParse(
-                                      quantityController.text.trim()) ??
-                                  1;
-                              final updatedPrice = double.tryParse(
-                                      priceController.text.trim()) ??
-                                  0.0;
-
-                              final groupId = Provider.of<GroceryItemProvider>(
-                                      context,
-                                      listen: false)
-                                  .groupId;
-                              final listId = Provider.of<GroceryItemProvider>(
-                                      context,
-                                      listen: false)
-                                  .listId;
+                              final updatedQuantity =
+                                  int.tryParse(quantityController.text.trim()) ?? 1;
+                              final updatedPrice =
+                                  double.tryParse(priceController.text.trim()) ?? 0.0;
+                              final groupId = Provider.of<GroceryItemProvider>(context, listen: false).groupId;
+                              final listId = Provider.of<GroceryItemProvider>(context, listen: false).listId;
                               final itemId = widget.item['id'];
-
                               await _groceryItemService.updateItem(
                                 groupId: groupId,
                                 listId: listId,
@@ -209,7 +216,6 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                                   'price': updatedPrice,
                                 },
                               );
-
                               Navigator.pop(ctx);
                             },
                             child: const Text("Save"),

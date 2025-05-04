@@ -174,6 +174,7 @@ class GroceryListScreen extends StatelessWidget {
                           'groupId': groupId,
                           'listId': listId,
                           'listName': list['name'],
+                          'itemsCount': list['itemsCount'] ?? 0,
                         },
                       );
                     },

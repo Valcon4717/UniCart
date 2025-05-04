@@ -30,13 +30,26 @@ class GroceryItemProvider extends ChangeNotifier {
     _subscription = _groceryItemService
         .getItems(groupId, listId)
         .listen((fetchedItems) {
-      _items = fetchedItems;
+      _items = fetchedItems.map((item) {
+        return {
+          ...item,
+          'image': item['image'] ?? '',
+          'brand': item['brand'] ?? '',
+          'size': item['size'] ?? '',
+        };
+      }).toList();
       isLoading = false;
       notifyListeners();
     });
   }
 
-  Future<void> addItem(String name, int quantity, double price, String addedBy) async {
+  Future<void> addItem(
+    String name,
+    int quantity,
+    double price,
+    String addedBy, {
+    Map<String, dynamic>? extraFields,
+  }) async {
     await _groceryItemService.addItem(
       groupId: groupId,
       listId: listId,
@@ -44,6 +57,7 @@ class GroceryItemProvider extends ChangeNotifier {
       quantity: quantity,
       price: price,
       addedBy: addedBy,
+      extraFields: extraFields,
     );
     refresh();
   }
