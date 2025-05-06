@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../controllers/theme_controller.dart';
 import '../services/user_service.dart';
 import '../views/grocery_list_screen.dart';
+import '../views/share_group_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,25 +18,25 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   bool _isDarkMode = false;
 
-Future<void> _pickAndUploadPhoto() async {
-  final userService = UserService();
-  try {
-    final photoUrl = await userService.uploadProfilePhoto();
+  Future<void> _pickAndUploadPhoto() async {
+    final userService = UserService();
+    try {
+      final photoUrl = await userService.uploadProfilePhoto();
 
-    final user = FirebaseAuth.instance.currentUser;
-    await user?.updatePhotoURL(photoUrl);
-    await user?.reload();
+      final user = FirebaseAuth.instance.currentUser;
+      await user?.updatePhotoURL(photoUrl);
+      await user?.reload();
 
-    setState(() {}); // Refresh UI
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile photo updated!')),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Upload failed: $e')),
-    );
+      setState(() {}); // Refresh UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile photo updated!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    }
   }
-}
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -50,6 +51,28 @@ Future<void> _pickAndUploadPhoto() async {
 
   void _navigateToCreateGroup() {
     Navigator.pushNamed(context, '/join-or-create-group');
+  }
+
+  void _showAddGroupDialog() async {
+    String currentGroupId = await _getCurrentGroupId();
+
+    if (currentGroupId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select or create a group first')),
+      );
+      return;
+    }
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (_) => ShareGroupDialog(groupId: currentGroupId),
+      );
+    }
+  }
+
+  Future<String> _getCurrentGroupId() async {
+    return 'current_group_id';
   }
 
   void _navigateToManageGroup() async {
@@ -80,21 +103,21 @@ Future<void> _pickAndUploadPhoto() async {
     return Scaffold(
       key: _scaffoldKey,
       drawer: Drawer(
-        backgroundColor: _isDarkMode
-            ? const Color(0xFF0F0E17)
-            : const Color(0xFFEEECF4),
+        backgroundColor:
+            _isDarkMode ? const Color(0xFF0F0E17) : const Color(0xFFEEECF4),
         child: SafeArea(
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 10),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: Column(
                   children: [
                     Center(
                       child: GestureDetector(
                         onTap: _pickAndUploadPhoto,
                         child: CircleAvatar(
-                          radius: 30,
+                          radius: 40,
                           backgroundImage: user?.photoURL != null
                               ? NetworkImage(user!.photoURL!)
                               : null,
@@ -152,17 +175,30 @@ Future<void> _pickAndUploadPhoto() async {
       appBar: AppBar(
         backgroundColor: theme.surface,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12.0),
-          child: IconButton(
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            icon: CircleAvatar(
-              radius: 24,
-              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-              child: user?.photoURL == null ? const Icon(Icons.person, size: 20) : null,
+        leading: IconButton(
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          icon: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundImage:
+                  user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+              child: user?.photoURL == null
+                  ? const Icon(Icons.person, size: 20)
+                  : null,
             ),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(Icons.group_add),
+              tooltip: 'Add to group',
+              onPressed: _showAddGroupDialog,
+            ),
+          ),
+        ],
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: NavigationBar(
@@ -174,9 +210,8 @@ Future<void> _pickAndUploadPhoto() async {
         },
         surfaceTintColor: theme.surface,
         indicatorColor: theme.primaryContainer,
-        backgroundColor: _isDarkMode
-            ? const Color(0xFF0F0E17)
-            : const Color(0xFFEEECF4),
+        backgroundColor:
+            _isDarkMode ? const Color(0xFF0F0E17) : const Color(0xFFEEECF4),
         destinations: [
           NavigationDestination(
             icon: IconTheme(
