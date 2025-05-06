@@ -30,7 +30,6 @@ final clientSecret = dotenv.env['KROGER_CLIENT_SECRET'] ?? '';
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print('API working, got token');
       return data['access_token'];
     } else {
       print('Failed to get token: ${response.statusCode} → ${response.body}');

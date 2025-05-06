@@ -134,22 +134,12 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
               final price = double.tryParse(priceController.text.trim()) ?? 0.0;
               final category = categoryController.text.trim();
               if (name.isNotEmpty) {
-                print('Adding item with the following details:');
-                print('Name: $name');
-                print('Quantity: $quantity');
-                print('Price: $price');
-                print('User ID: $userId');
-                print('Category: $category');
-
                 await Provider.of<GroceryItemProvider>(parentContext,
                         listen: false)
                     .addItem(name, quantity, price, userId, extraFields: {
                   if (category.isNotEmpty) 'categories': category,
                 });
-
-                print('Item added successfully.');
               } else {
-                print('Name is empty. Item not added.');
               }
 
               Navigator.pop(dialogContext);

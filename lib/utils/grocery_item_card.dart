@@ -29,7 +29,7 @@ void _toggleBought() async {
       currentStatus: !newStatus,
     );
 
-    if (!mounted) return; // ⛑ Prevent setState on unmounted widget
+    if (!mounted) return;
     setState(() {
       widget.item['bought'] = newStatus;
     });

@@ -75,6 +75,8 @@ flutter:
     - assets/images/third_dark.png
     - assets/images/empty_light.png
     - assets/images/empty_dark.png
+    - assets/images/list_empty_dark.png
+    - assets/images/list_empty_light.png
     - .env
 
   fonts:

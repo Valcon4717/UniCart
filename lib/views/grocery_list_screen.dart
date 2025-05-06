@@ -68,9 +68,45 @@ class GroceryListScreen extends StatelessWidget {
     final groupName = groupDoc?.get('name') ?? 'UniCart';
     final theme = Theme.of(context).colorScheme;
 
-    // TO DO: Add picture when there is no
     if (groupId == null) {
-      return const Center(child: Text("No group selected."));
+      final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+      final imagePath = isDarkMode
+          ? 'assets/images/empty_dark.png'
+          : 'assets/images/empty_light.png';
+
+      return Scaffold(
+        backgroundColor: theme.surface,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  imagePath,
+                  height: 300,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primary,
+                    foregroundColor: theme.onPrimary,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/join-or-create-group');
+                  },
+                  child: const Text(
+                    "Create Group",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -89,6 +125,34 @@ class GroceryListScreen extends StatelessWidget {
               allLists.where((list) => list['isPinned'] != true).toList();
           final lists = [...pinnedLists, ...unpinnedLists];
 
+          if (lists.isEmpty) {
+            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+            final emptyListImage = isDarkMode
+                ? 'assets/images/list_empty_dark.png'
+                : 'assets/images/list_empty_light.png';
+
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      emptyListImage,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 40),
+                    const Text(
+                      "No lists yet :(\nTap the + button to create one.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
             itemCount: lists.length + 1,
@@ -145,14 +209,18 @@ class GroceryListScreen extends StatelessWidget {
                     await FirestoreUtils.listCollection(groupId)
                         .doc(listId)
                         .delete();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('List "${list['name']}" deleted')),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('List "${list['name']}" deleted')),
+                      );
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Error deleting list')),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Error deleting list')),
+                      );
+                    }
                   }
                 },
                 child: Card(
@@ -253,7 +321,10 @@ class GroceryListScreen extends StatelessWidget {
         width: 1,
         height: 1,
         child: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .snapshots(),
           builder: (context, snapshot) => const SizedBox.shrink(),
         ),
       ),

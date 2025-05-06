@@ -29,7 +29,6 @@ class KrogerProductService {
 
   Future<List<dynamic>?> searchProducts(String term, String locationId) async {
     if (term.length < 3 || term.length > 127) {
-      print('Search term must be 3–127 characters.');
       return [];
     }
 
