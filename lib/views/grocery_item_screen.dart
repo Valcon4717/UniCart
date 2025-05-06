@@ -84,11 +84,11 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
   }
 
   void _showAddItemDialog(BuildContext context) {
-    // Store a reference to the parent context that has access to the provider
     final parentContext = context;
     final nameController = TextEditingController();
     final quantityController = TextEditingController();
     final priceController = TextEditingController();
+    final categoryController = TextEditingController(); // New controller
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     showDialog(
@@ -113,6 +113,11 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
                 decoration: const InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
               ),
+              TextField(
+                controller: categoryController,
+                decoration:
+                    const InputDecoration(labelText: 'Category'), // New field
+              ),
             ],
           ),
         ),
@@ -127,12 +132,24 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
               final quantity =
                   int.tryParse(quantityController.text.trim()) ?? 1;
               final price = double.tryParse(priceController.text.trim()) ?? 0.0;
-
+              final category = categoryController.text.trim();
               if (name.isNotEmpty) {
-                // Use the parent context method for dialog
+                print('Adding item with the following details:');
+                print('Name: $name');
+                print('Quantity: $quantity');
+                print('Price: $price');
+                print('User ID: $userId');
+                print('Category: $category');
+
                 await Provider.of<GroceryItemProvider>(parentContext,
                         listen: false)
-                    .addItem(name, quantity, price, userId, extraFields: {});
+                    .addItem(name, quantity, price, userId, extraFields: {
+                  if (category.isNotEmpty) 'categories': category,
+                });
+
+                print('Item added successfully.');
+              } else {
+                print('Name is empty. Item not added.');
               }
 
               Navigator.pop(dialogContext);
@@ -170,147 +187,160 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search Groceries',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.light
-                    ? const Color(0xFFEEECF4)
-                    : const Color(0xFF0F0E17),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
+      body: Stack(
+  children: [
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search Groceries',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.light
+                  ? const Color(0xFFEEECF4)
+                  : const Color(0xFF0F0E17),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
               ),
-              onChanged: (query) async {
-                if (query.isNotEmpty && _krogerLocationId != null) {
-                  final results = await _krogerProductService.searchProducts(
-                      query, _krogerLocationId!);
-                  setState(() {
-                    _krogerSearchResults =
-                        (results ?? []).cast<Map<String, dynamic>>();
-                  });
-                } else {
+            ),
+            onChanged: (query) async {
+              if (query.isNotEmpty && _krogerLocationId != null) {
+                final results = await _krogerProductService.searchProducts(
+                    query, _krogerLocationId!);
+                setState(() {
+                  _krogerSearchResults =
+                      (results ?? []).cast<Map<String, dynamic>>();
+                });
+              } else {
+                setState(() {
+                  _krogerSearchResults = [];
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView(
+              children: [
+                ..._buildCategorySections(context, incompleteItems, theme),
+                if (boughtItems.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    'Bought',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...boughtItems.map((item) => GroceryItemCard(item: item)),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+    if (_krogerSearchResults.isNotEmpty)
+      Positioned(
+        top: 90,
+        left: 16,
+        right: 16,
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          constraints: BoxConstraints(maxHeight: 400),
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _krogerSearchResults.length,
+            itemBuilder: (context, index) {
+              final product = _krogerSearchResults[index];
+              final name = product['description'] ?? 'Unknown';
+              final brand = product['brand'] ?? '';
+              final items = product['items'] as List<dynamic>? ?? [];
+              final size =
+                  items.isNotEmpty ? (items[0]['size'] ?? '') : '';
+              final price = (items.isNotEmpty &&
+                      items[0]['price'] != null &&
+                      items[0]['price']['regular'] != null)
+                  ? double.tryParse(
+                          items[0]['price']['regular'].toString()) ??
+                      0.0
+                  : 0.0;
+
+              final imageUrl = extractImageUrl(product);
+
+              return ListTile(
+                title: Text(name),
+                subtitle: Text('$brand $size'),
+                trailing: Text('\$${price.toStringAsFixed(2)}'),
+                leading: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.image_not_supported);
+                        },
+                      )
+                    : const Icon(Icons.shopping_bag),
+                onTap: () async {
+                  final userId =
+                      FirebaseAuth.instance.currentUser?.uid ?? '';
+                  final size =
+                      items.isNotEmpty ? (items[0]['size'] ?? '') : '';
+                  final price = (items.isNotEmpty &&
+                          items[0]['price'] != null &&
+                          items[0]['price']['regular'] != null)
+                      ? double.tryParse(
+                              items[0]['price']['regular'].toString()) ??
+                          0.0
+                      : 0.0;
+                  final imageUrl = extractImageUrl(product);
+
+                  await Provider.of<GroceryItemProvider>(context,
+                          listen: false)
+                      .addItem(
+                    product['description'] ?? 'Unknown',
+                    1,
+                    price,
+                    userId,
+                    extraFields: {
+                      'brand': product['brand'] ?? '',
+                      'size': size,
+                      'image': imageUrl,
+                      'categories': product['categories'] ?? [],
+                    },
+                  );
+
                   setState(() {
                     _krogerSearchResults = [];
                   });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            if (_krogerSearchResults.isNotEmpty)
-              Container(
-                decoration: BoxDecoration(
-                  color: theme.surface,
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _krogerSearchResults.length,
-                  itemBuilder: (context, index) {
-                    final product = _krogerSearchResults[index];
-                    final name = product['description'] ?? 'Unknown';
-                    final brand = product['brand'] ?? '';
-                    final items = product['items'] as List<dynamic>? ?? [];
-                    final size =
-                        items.isNotEmpty ? (items[0]['size'] ?? '') : '';
-                    final price = (items.isNotEmpty &&
-                            items[0]['price'] != null &&
-                            items[0]['price']['regular'] != null)
-                        ? double.tryParse(
-                                items[0]['price']['regular'].toString()) ??
-                            0.0
-                        : 0.0;
-
-                    // Get image URL with our helper method
-                    final imageUrl = extractImageUrl(product);
-
-                    return ListTile(
-                      title: Text(name),
-                      subtitle: Text('$brand $size'),
-                      trailing: Text('\$${price.toStringAsFixed(2)}'),
-                      // Add a leading image if we have a URL
-                      leading: imageUrl.isNotEmpty
-                          ? Image.network(
-                              imageUrl,
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.image_not_supported);
-                              },
-                            )
-                          : const Icon(Icons.shopping_bag),
-                      onTap: () async {
-                        final userId =
-                            FirebaseAuth.instance.currentUser?.uid ?? '';
-                        final items = product['items'] as List<dynamic>? ?? [];
-                        final size =
-                            items.isNotEmpty ? (items[0]['size'] ?? '') : '';
-                        final price = (items.isNotEmpty &&
-                                items[0]['price'] != null &&
-                                items[0]['price']['regular'] != null)
-                            ? double.tryParse(
-                                    items[0]['price']['regular'].toString()) ??
-                                0.0
-                            : 0.0;
-
-                        // Get image URL with our helper method
-                        final imageUrl = extractImageUrl(product);
-
-                        await Provider.of<GroceryItemProvider>(context,
-                                listen: false)
-                            .addItem(
-                          product['description'] ?? 'Unknown',
-                          1,
-                          price,
-                          userId,
-                          extraFields: {
-                            'brand': product['brand'] ?? '',
-                            'size': size,
-                            'image': imageUrl,
-                          },
-                        );
-
-                        setState(() {
-                          _krogerSearchResults = [];
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-            Expanded(
-              child: ListView(
-                children: [
-                  ...incompleteItems.map((item) => GroceryItemCard(item: item)),
-                  if (boughtItems.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    Text(
-                      'Bought',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: theme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...boughtItems.map((item) => GroceryItemCard(item: item)),
-                  ],
-                ],
-              ),
-            ),
-          ],
+                },
+              );
+            },
+          ),
         ),
       ),
+  ],
+),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemDialog(context),
         backgroundColor: theme.primary,
@@ -319,4 +349,69 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
       ),
     );
   }
+}
+
+// FIXED: The problem was in this function handling the category display
+List<Widget> _buildCategorySections(
+    BuildContext context, List<Map<String, dynamic>> items, ColorScheme theme) {
+  final Map<String, List<Map<String, dynamic>>> groupedItems = {};
+
+  // Default all items to 'Uncategorized' first
+  for (var item in items) {
+    // Initialize default category
+    String category = 'Uncategorized';
+
+    // Check if categories exists and determine its type
+    if (item.containsKey('categories')) {
+      var rawCategory = item['categories'];
+
+      if (rawCategory is List && rawCategory.isNotEmpty) {
+        // If it's a list and not empty, use the first item
+        category = rawCategory.first.toString();
+      } else if (rawCategory is String && rawCategory.isNotEmpty) {
+        // If it's a non-empty string, use it directly
+        category = rawCategory;
+      } else if (rawCategory != null && rawCategory.toString().isNotEmpty) {
+        // Handle other cases by converting to string
+        category = rawCategory.toString();
+      }
+    }
+
+    // Ensure the category exists in our map
+    if (!groupedItems.containsKey(category)) {
+      groupedItems[category] = [];
+    }
+
+    // Add item to the appropriate category
+    groupedItems[category]!.add(item);
+  }
+
+  // Return widgets for each category
+  return groupedItems.entries.map((entry) {
+    final category = entry.key;
+    final itemsInCategory = entry.value;
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent, // removes divider lines
+        splashColor: Colors.transparent, // optional: removes ripple
+        highlightColor: Colors.transparent, // optional: removes ripple
+      ),
+      child: ExpansionTile(
+        backgroundColor: Colors.transparent, // optional: ensures no color block
+        collapsedBackgroundColor: Colors.transparent,
+        title: Text(
+          category,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: theme.onSurface,
+          ),
+        ),
+        initiallyExpanded: true,
+        children:
+            itemsInCategory.map((item) => GroceryItemCard(item: item)).toList(),
+      ),
+    );
+  }).toList();
 }

@@ -106,8 +106,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -131,7 +131,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-
               // Name Input
               TextField(
                 controller: _nameController,
@@ -139,13 +138,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Full Name",
                   errorText: _nameError,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               const SizedBox(height: 16),
-
               // Email Input
               TextField(
                 controller: _emailController,
@@ -154,13 +153,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Email Address",
                   errorText: _emailError,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               const SizedBox(height: 16),
-
               // Password Input
               TextField(
                 controller: _passwordController,
@@ -169,13 +168,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Password",
                   errorText: _passwordError,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               const SizedBox(height: 16),
-
               // Confirm Password Input
               TextField(
                 controller: _confirmPasswordController,
@@ -184,13 +183,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Confirm Password",
                   errorText: _confirmPasswordError,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
               const SizedBox(height: 40),
-
               // Register Button
               SizedBox(
                 width: double.infinity,
@@ -203,13 +202,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator()
-                      : const Text("Create Account",
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      : const Text(
+                          "Create Account",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
-
               // Login link
               TextButton(
                 onPressed: () {

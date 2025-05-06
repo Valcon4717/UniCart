@@ -15,19 +15,26 @@ class GroceryItemCard extends StatefulWidget {
 class _GroceryItemCardState extends State<GroceryItemCard> {
   final GroceryItemService _groceryItemService = GroceryItemService();
 
-  void _toggleBought() async {
-    final provider = Provider.of<GroceryItemProvider>(context, listen: false);
-    final itemId = widget.item['id'];
+void _toggleBought() async {
+  final provider = Provider.of<GroceryItemProvider>(context, listen: false);
+  final itemId = widget.item['id'];
 
-    if (itemId != null) {
-      await _groceryItemService.toggleBought(
-        groupId: provider.groupId,
-        listId: provider.listId,
-        itemId: itemId,
-        currentStatus: widget.item['bought'] ?? false,
-      );
-    }
+  if (itemId != null) {
+    final newStatus = !(widget.item['bought'] ?? false);
+
+    await _groceryItemService.toggleBought(
+      groupId: provider.groupId,
+      listId: provider.listId,
+      itemId: itemId,
+      currentStatus: !newStatus,
+    );
+
+    if (!mounted) return; // ⛑ Prevent setState on unmounted widget
+    setState(() {
+      widget.item['bought'] = newStatus;
+    });
   }
+}
 
   void _deleteItem() async {
     final provider = Provider.of<GroceryItemProvider>(context, listen: false);
@@ -153,17 +160,20 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                     children: [
                       if ((widget.item['brand'] ?? '').isNotEmpty)
                         _detailText("Brand", widget.item['brand']),
-                      _detailText("Quantity", "${widget.item['quantity'] ?? 1}"),
+                      _detailText(
+                          "Quantity", "${widget.item['quantity'] ?? 1}"),
                       if ((widget.item['size'] ?? '').isNotEmpty)
                         _detailText("Size", widget.item['size']),
-                      _detailText("Cost", "\$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
+                      _detailText("Cost",
+                          "\$${(widget.item['price'] ?? 0).toStringAsFixed(2)}"),
                     ],
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
-                    final nameController = TextEditingController(text: widget.item['name']);
+                    final nameController =
+                        TextEditingController(text: widget.item['name']);
                     final quantityController = TextEditingController(
                         text: widget.item['quantity']?.toString() ?? '1');
                     final priceController = TextEditingController(
@@ -177,16 +187,19 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                           children: [
                             TextField(
                               controller: nameController,
-                              decoration: const InputDecoration(labelText: 'Name'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Name'),
                             ),
                             TextField(
                               controller: quantityController,
-                              decoration: const InputDecoration(labelText: 'Quantity'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Quantity'),
                               keyboardType: TextInputType.number,
                             ),
                             TextField(
                               controller: priceController,
-                              decoration: const InputDecoration(labelText: 'Price'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Price'),
                               keyboardType: TextInputType.number,
                             ),
                           ],
@@ -199,12 +212,20 @@ class _GroceryItemCardState extends State<GroceryItemCard> {
                           ElevatedButton(
                             onPressed: () async {
                               final updatedName = nameController.text.trim();
-                              final updatedQuantity =
-                                  int.tryParse(quantityController.text.trim()) ?? 1;
-                              final updatedPrice =
-                                  double.tryParse(priceController.text.trim()) ?? 0.0;
-                              final groupId = Provider.of<GroceryItemProvider>(context, listen: false).groupId;
-                              final listId = Provider.of<GroceryItemProvider>(context, listen: false).listId;
+                              final updatedQuantity = int.tryParse(
+                                      quantityController.text.trim()) ??
+                                  1;
+                              final updatedPrice = double.tryParse(
+                                      priceController.text.trim()) ??
+                                  0.0;
+                              final groupId = Provider.of<GroceryItemProvider>(
+                                      context,
+                                      listen: false)
+                                  .groupId;
+                              final listId = Provider.of<GroceryItemProvider>(
+                                      context,
+                                      listen: false)
+                                  .listId;
                               final itemId = widget.item['id'];
                               await _groceryItemService.updateItem(
                                 groupId: groupId,
@@ -247,11 +268,14 @@ Widget buildItemAvatar(Map<String, dynamic> item) {
   }
 
   return StreamBuilder<DocumentSnapshot>(
-    stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+    stream:
+        FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
     builder: (context, snapshot) {
       final data = snapshot.data?.data() as Map<String, dynamic>?;
 
-      if (data != null && data['photoURL'] != null && data['photoURL'].toString().isNotEmpty) {
+      if (data != null &&
+          data['photoURL'] != null &&
+          data['photoURL'].toString().isNotEmpty) {
         return CircleAvatar(
           radius: 14,
           backgroundImage: NetworkImage(data['photoURL']),
@@ -273,7 +297,10 @@ Widget _prefetchLatestAvatar(String userId) {
       width: 1,
       height: 1,
       child: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots(),
         builder: (context, snapshot) => const SizedBox.shrink(),
       ),
     ),

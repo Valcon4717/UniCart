@@ -31,11 +31,16 @@ class GroceryItemProvider extends ChangeNotifier {
         .getItems(groupId, listId)
         .listen((fetchedItems) {
       _items = fetchedItems.map((item) {
+        // Make sure categories is always properly initialized
+        var categories = item['categories'];
+        categories ??= 'Uncategorized';
+        
         return {
           ...item,
           'image': item['image'] ?? '',
           'brand': item['brand'] ?? '',
           'size': item['size'] ?? '',
+          'categories': categories,
         };
       }).toList();
       isLoading = false;

@@ -15,17 +15,23 @@ class GroceryItemService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
+        
+        // Ensure categories field is properly extracted from Firestore
+        var categories = data['categories'];
+        
         return {
           'id': doc.id,
           'name': data['name'] ?? '',
           'quantity': data['quantity'] ?? 0,
           'price': data['price'] ?? 0.0,
+          'bought': data['bought'] ?? false,
           'addedBy': data['addedBy'] ?? '',
           'brand': data['brand'] ?? '',
           'size': data['size'] ?? '',
           'image': data['image'] ?? '',
           'addedByName': data['addedByName'] ?? '',
           'addedByPhoto': data['addedByPhoto'] ?? '',
+          'categories': categories, // Use the extracted categories field
           'createdAt': data['createdAt']?.toDate() ?? DateTime.now(),
         };
       }).toList();
@@ -61,6 +67,9 @@ class GroceryItemService {
       'lastUpdated': timestamp,
     });
 
+    // Process categories field specially
+    var categories = extraFields?['categories'] ?? 'Uncategorized';
+    
     // Add the item with user data
     await _db
         .collection('groups')
@@ -72,10 +81,12 @@ class GroceryItemService {
       'name': name,
       'quantity': quantity,
       'price': price,
+      'bought': false,
       'addedBy': addedBy,
       'addedByName': addedByName,
       'addedByPhoto': addedByPhoto,
       'createdAt': timestamp,
+      'categories': categories,
       ...?extraFields,
     });
   }
