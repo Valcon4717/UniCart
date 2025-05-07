@@ -42,11 +42,20 @@ class _HomeScreenState extends State<HomeScreen> {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
-
   final List<Widget> _screens = const [
     GroceryListScreen(),
-    Center(child: Text('Budget Page')),
-    Center(child: Text('Split Page')),
+    Center(
+      child: Text(
+        '🚧 Budget Under Construction 🚧',
+        style: TextStyle(fontSize: 18),
+      ),
+    ),
+    Center(
+      child: Text(
+        '🚧 Split Under Construction 🚧',
+        style: TextStyle(fontSize: 18),
+      ),
+    ),
   ];
 
   void _navigateToCreateGroup() {

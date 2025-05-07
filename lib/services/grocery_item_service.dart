@@ -15,10 +15,10 @@ class GroceryItemService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
-        
+
         // Ensure categories field is properly extracted from Firestore
         var categories = data['categories'];
-        
+
         return {
           'id': doc.id,
           'name': data['name'] ?? '',
@@ -69,7 +69,7 @@ class GroceryItemService {
 
     // Process categories field specially
     var categories = extraFields?['categories'] ?? 'Uncategorized';
-    
+
     // Add the item with user data
     await _db
         .collection('groups')
@@ -131,13 +131,23 @@ class GroceryItemService {
     required String itemId,
     required bool currentStatus,
   }) async {
+    final itemsRef = _db
+        .collection('groups')
+        .doc(groupId)
+        .collection('lists')
+        .doc(listId)
+        .collection('items');
+
+    await itemsRef.doc(itemId).update({'bought': !currentStatus});
+
+    final snapshot = await itemsRef.where('bought', isEqualTo: true).get();
+    final completedCount = snapshot.docs.length;
+
     await _db
         .collection('groups')
         .doc(groupId)
         .collection('lists')
         .doc(listId)
-        .collection('items')
-        .doc(itemId)
-        .update({'bought': !currentStatus});
+        .update({'completedCount': completedCount});
   }
 }

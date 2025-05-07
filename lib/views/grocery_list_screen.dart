@@ -259,7 +259,7 @@ class GroceryListScreen extends StatelessWidget {
                         const Icon(Icons.list, size: 14),
                         const SizedBox(width: 4),
                         Text(
-                          "List 0/${list['itemsCount'] ?? 0} Completed",
+                          "List ${list['completedCount'] ?? 0}/${list['itemsCount'] ?? 0} Completed",
                           style: const TextStyle(fontSize: 13),
                         ),
                       ],
