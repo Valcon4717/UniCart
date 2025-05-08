@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 
+/// Handles user authentication by validating email and password inputs,
+/// calling the login method from an AuthController, and updating the UI accordingly.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -10,17 +12,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Text editing controllers for email and password fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Error messages
   String? _emailError;
   String? _passwordError;
   bool _isLoading = false;
 
-  /// The _login function handles user authentication by validating email and password inputs, then
-  /// calling the login method from an AuthController and updating the UI accordingly.
   Future<void> _login() async {
     setState(() {
       _emailError = null;
@@ -75,9 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: theme.surface,
         elevation: 0,
         leading: Padding(
-          padding:  EdgeInsets.only(left: 20.0),
+          padding: EdgeInsets.only(left: 20.0),
           child: IconButton(
-            icon:  Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back),
             color: theme.onSurface,
             onPressed: () {
               Navigator.pop(context);
@@ -87,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding:  EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -100,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: theme.onSurface,
                 ),
               ),
-               SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 "Log in to access your shared grocery lists.",
                 textAlign: TextAlign.center,
@@ -110,8 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: theme.onSurface,
                 ),
               ),
-               SizedBox(height: 40),
-              // Email Input
+              SizedBox(height: 40),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -121,12 +118,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                   contentPadding:
-                       EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-               SizedBox(height: 16),
-
-              // Password Input
+              SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -136,12 +131,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                   contentPadding:
-                       EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
-               SizedBox(height: 50),
-
-              // Login Button
+              SizedBox(height: 50),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -152,20 +145,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: _isLoading ? null : _login,
                   child: _isLoading
-                      ?  CircularProgressIndicator()
-                      :  Text("Log In",
+                      ? CircularProgressIndicator()
+                      : Text("Log In",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
-               SizedBox(height: 16),
-
-              // Register link
+              SizedBox(height: 16),
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/register');
                 },
-                child:  Text.rich(
+                child: Text.rich(
                   TextSpan(
                     text: "Don’t have an account? ",
                     style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),

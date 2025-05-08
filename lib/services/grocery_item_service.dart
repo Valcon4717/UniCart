@@ -1,5 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Provides services for managing grocery items within a group and list.
+///
+/// Interacts with Firestore to perform CRUD operations on grocery items.
+/// Includes methods for adding, updating, deleting, and toggling the bought status of items.
+///
+/// Properties:
+/// - [_db]: An instance of [FirebaseFirestore] for database operations.
+///
+/// Methods:
+/// - [getItems]: Streams a list of grocery items for a specific group and list.
+/// - [addItem]: Adds a new grocery item to a specific group and list.
+/// - [updateItem]: Updates an existing grocery item with new data.
+/// - [deleteItem]: Deletes a grocery item from a specific group and list.
+/// - [toggleBought]: Toggles the bought status of a grocery item and updates the completed count.
 class GroceryItemService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -15,8 +29,6 @@ class GroceryItemService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
-
-        // Ensure categories field is properly extracted from Firestore
         var categories = data['categories'];
 
         return {
@@ -31,7 +43,7 @@ class GroceryItemService {
           'image': data['image'] ?? '',
           'addedByName': data['addedByName'] ?? '',
           'addedByPhoto': data['addedByPhoto'] ?? '',
-          'categories': categories, // Use the extracted categories field
+          'categories': categories,
           'createdAt': data['createdAt']?.toDate() ?? DateTime.now(),
         };
       }).toList();
@@ -47,16 +59,12 @@ class GroceryItemService {
     required String addedBy,
     Map<String, dynamic>? extraFields,
   }) async {
-    // Get current user data to include in the item
     final userDoc = await _db.collection('users').doc(addedBy).get();
     final userData = userDoc.data() ?? {};
-
     final addedByName = userData['name'] ?? '';
     final addedByPhoto = userData['photoURL'] ?? '';
-
     final timestamp = FieldValue.serverTimestamp();
 
-    // Update the item count in the list document
     await _db
         .collection('groups')
         .doc(groupId)
@@ -67,10 +75,8 @@ class GroceryItemService {
       'lastUpdated': timestamp,
     });
 
-    // Process categories field specially
     var categories = extraFields?['categories'] ?? 'Uncategorized';
 
-    // Add the item with user data
     await _db
         .collection('groups')
         .doc(groupId)

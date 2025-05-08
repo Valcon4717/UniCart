@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// StatefulWidget that implements animations for a landing
+/// screen UI in a Flutter application.
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
@@ -68,7 +70,6 @@ class _LandingScreenState extends State<LandingScreen>
           child: Column(
             children: [
               const SizedBox(height: 230),
-
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) => Opacity(
@@ -127,9 +128,7 @@ class _LandingScreenState extends State<LandingScreen>
                   ),
                 ),
               ),
-
               const Spacer(flex: 2),
-              // Button animation
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) => Opacity(

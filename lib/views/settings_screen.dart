@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// This is the Settings widget, which is currently under development.
+/// The functionality and design of this screen are planned to be completed in the future.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
   @override

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+/// StatefulWidget that displays onboarding pages with images,
+/// titles, and captions, allowing users to navigate through the pages and complete setup before
+/// proceeding.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -56,7 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _onNextPressed() {
     if (_currentIndex < pagesData.length - 1) {
       _pageController.nextPage(
-        duration:  Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
@@ -81,9 +84,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         backgroundColor: theme.surface,
         elevation: 0,
         leading: Padding(
-          padding:  EdgeInsets.only(left: 20.0),
+          padding: EdgeInsets.only(left: 20.0),
           child: IconButton(
-            icon:  Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back),
             color: theme.onSurface,
             onPressed: () {
               Navigator.pushNamed(context, '/');
@@ -102,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final data = pagesData[index];
                   return Padding(
-                    padding:  EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 24.0,
                       vertical: 32.0,
                     ),
@@ -113,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           data["image"]!,
                           height: 220,
                         ),
-                         SizedBox(height: 48),
+                        SizedBox(height: 48),
                         Text(
                           data["title"]!,
                           textAlign: TextAlign.center,
@@ -122,7 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             color: theme.onSurface,
                           ),
                         ),
-                         SizedBox(height: 16),
+                        SizedBox(height: 16),
                         Text(
                           data["caption"]!,
                           textAlign: TextAlign.center,
@@ -139,8 +142,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-
-            // Dots indicator
             SmoothPageIndicator(
               controller: _pageController,
               count: pagesData.length,
@@ -151,11 +152,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 dotWidth: 8,
               ),
             ),
-             SizedBox(height: 24),
-
-            // Continue button
+            SizedBox(height: 24),
             Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 24.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
               child: ElevatedButton(
                 onPressed: () {
                   if (_currentIndex == pagesData.length - 1) {
@@ -173,12 +172,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _currentIndex == pagesData.length - 1
                       ? "Get Started"
                       : "Continue",
-                  style:  TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
-             SizedBox(height: 32),
+            SizedBox(height: 32),
           ],
         ),
       ),

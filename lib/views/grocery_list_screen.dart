@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/user_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// The following is a StatelessWidget that displays a list of grocery lists,
+/// allows users to create new lists, and provides functionality to delete and pin lists.
 class GroceryListScreen extends StatelessWidget {
   const GroceryListScreen({super.key});
 

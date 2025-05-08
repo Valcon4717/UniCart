@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 
+/// StatefulWidget that allows users to register for an app with
+/// input validation and error handling.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -131,7 +133,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Name Input
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -145,7 +146,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Email Input
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -160,7 +160,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Password Input
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -175,7 +174,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Confirm Password Input
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: true,
@@ -190,7 +188,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Register Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -204,12 +201,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const CircularProgressIndicator()
                       : const Text(
                           "Create Account",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),
               const SizedBox(height: 16),
-              // Login link
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/login');

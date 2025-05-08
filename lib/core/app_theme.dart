@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
+/// A utility class that defines the application's light and dark themes.
+///
+/// The `AppTheme` class provides two static theme configurations:
+/// - `light`: A light theme using Material 3 design principles.
+/// - `dark`: A dark theme using Material 3 design principles.
+///
+/// Both themes are customized with specific color schemes and app bar settings.
 class AppTheme {
   static final light = ThemeData(
     useMaterial3: true,

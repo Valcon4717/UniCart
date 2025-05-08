@@ -2,6 +2,26 @@ import 'kroger_auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+/// A service for interacting with Kroger's API to fetch nearby stores and search for products.
+///
+/// This service depends on [KrogerAuthService] to handle authentication and retrieve
+/// access tokens required for API requests.
+///
+/// Methods:
+/// - [getNearbyStores]: Fetches a list of nearby stores based on a provided zip code.
+/// - [searchProducts]: Searches for products in a specific store location based on a search term.
+///
+/// Usage:
+/// 1. Ensure that [KrogerAuthService] is properly configured to provide access tokens.
+/// 2. Use [getNearbyStores] to retrieve store information.
+/// 3. Use [searchProducts] to search for products in a specific store.
+///
+/// Notes:
+/// - Both methods return `null` if the access token cannot be retrieved.
+/// - [searchProducts] enforces a search term length between 3 and 127 characters.
+/// - API responses are expected to be in JSON format, and the relevant data is extracted
+///   from the `data` field of the response.
+/// ```
 class KrogerProductService {
   final KrogerAuthService authService = KrogerAuthService();
 

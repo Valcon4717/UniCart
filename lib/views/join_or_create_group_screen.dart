@@ -6,6 +6,8 @@ import '../providers/group_provider.dart';
 import '../services/group_service.dart';
 import 'create_group_screen.dart';
 
+/// StatefulWidget that allows users to create or join a
+/// group using group name and code inputs.
 class JoinOrCreateGroupScreen extends StatefulWidget {
   const JoinOrCreateGroupScreen({super.key});
 

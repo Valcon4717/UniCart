@@ -16,6 +16,16 @@ import '../views/manage_groups_screen.dart';
 import '../views/join_or_create_group_screen.dart';
 import '../utils/auth_gate.dart';
 
+/// Generates routes for the application based on the provided [RouteSettings].
+///
+/// This function maps route names to their corresponding screens and handles
+/// navigation throughout the app. It supports passing arguments to specific
+/// routes when needed.
+///
+/// Returns:
+/// - A [MaterialPageRoute] for the specified route if it matches one of the
+///   supported routes.
+/// - `null` if the route name does not match any of the supported routes.
 Route<dynamic>? generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case '/':

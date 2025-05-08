@@ -31,7 +31,7 @@ Future<void> main() async {
   );
 }
 
-/// The `UniCartApp` class is a StatelessWidget that defines the main application structure for the
+/// StatelessWidget that defines the main application structure for the
 /// UniCart app in Dart.
 class UniCartApp extends StatelessWidget {
   const UniCartApp({super.key});

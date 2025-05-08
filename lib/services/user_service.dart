@@ -4,6 +4,20 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Provides user-related services such as profile photo upload and user data retrieval
+/// using Firebase Authentication, Firestore, and Firebase Storage.
+///
+/// Properties:
+/// - [_auth]: An instance of [FirebaseAuth] for managing authentication.
+/// - [_db]: An instance of [FirebaseFirestore] for interacting with Firestore.
+/// - [_storage]: An instance of [FirebaseStorage] for handling file uploads.
+/// - [_picker]: An instance of [ImagePicker] for selecting images from the device.
+///
+/// Methods:
+/// - [uploadProfilePhoto]: Allows the currently authenticated user to upload a profile photo.
+/// - [getUserStream]: Returns a stream of [DocumentSnapshot] for real-time updates of a user's data
+///   from Firestore.
+/// - [getUserData]: Retrieves a user's data from Firestore as a [Map<String, dynamic>].
 class UserService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;

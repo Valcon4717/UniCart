@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import '../services/group_service.dart';
 import '../providers/group_provider.dart';
 
+/// The `CreateGroupScreen` class allows users to create a group, share
+/// invite links, and finish group setup.
 class CreateGroupScreen extends StatelessWidget {
   final String groupId;
   final String groupName;
@@ -109,7 +111,6 @@ class CreateGroupScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
 
-            // Group Code field with copy icon
             TextField(
               readOnly: true,
               controller: TextEditingController(text: groupId),

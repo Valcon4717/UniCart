@@ -6,6 +6,8 @@ import '../services/user_service.dart';
 import '../views/grocery_list_screen.dart';
 import '../views/share_group_dialog.dart';
 
+/// Implements a user interface with features
+/// like profile photo upload, theme toggling, group management, and navigation.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await user?.updatePhotoURL(photoUrl);
       await user?.reload();
 
-      setState(() {}); // Refresh UI
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile photo updated!')),
       );
@@ -42,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
+
   final List<Widget> _screens = const [
     GroceryListScreen(),
     Center(

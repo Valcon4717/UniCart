@@ -1,12 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-enum MemberRole {
-  admin,
-  editor,
-  viewer
-}
+enum MemberRole { admin, editor, viewer }
 
+/// Provides services for managing groups and their members.
+///
+/// This service interacts with Firebase Firestore and Firebase Authentication
+/// to handle group-related operations such as inviting users, managing roles,
+/// and retrieving group details.
+///
+/// Methods:
+/// - [inviteUser]: Invites a user to a group by email, validates the email,
+///   checks if the user exists, and adds them with a default role.
+/// - [getGroupMembers]: Returns a stream of group members as a list of maps,
+///   ordered by the time they were added.
+/// - [updateMemberRole]: Updates a member's role in the group, ensuring the
+///   current user has admin privileges.
+/// - [removeMember]: Removes a member from the group, ensuring the current
+///   user has admin privileges.
+/// - [getUserGroups]: Returns a stream of the current user's groups as a list
+///   of Firestore document snapshots.
+/// - [getGroupDetails]: Retrieves details of a specific group as a Firestore document snapshot.
 class AddGroupService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -16,7 +30,7 @@ class AddGroupService {
     if (email.isEmpty) {
       throw Exception('Email cannot be empty');
     }
-    
+
     // Validate email format
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
@@ -24,31 +38,28 @@ class AddGroupService {
     }
 
     try {
-      // First, check if the user exists in the system
       final userSnapshot = await _firestore
           .collection('users')
           .where('email', isEqualTo: email.toLowerCase())
           .get();
 
       if (userSnapshot.docs.isEmpty) {
-        throw Exception('User not found. Please ensure the email is registered.');
+        throw Exception(
+            'User not found. Please ensure the email is registered.');
       }
 
       final invitedUser = userSnapshot.docs.first;
-      
-      // Check if user is already a member
       final existingMember = await _firestore
           .collection('groups')
           .doc(groupId)
           .collection('members')
           .doc(invitedUser.id)
           .get();
-          
+
       if (existingMember.exists) {
         throw Exception('User is already a member of this group');
       }
 
-      // Add user to the group with default role
       await _firestore
           .collection('groups')
           .doc(groupId)
@@ -56,15 +67,14 @@ class AddGroupService {
           .doc(invitedUser.id)
           .set({
         'userId': invitedUser.id,
-        'name': invitedUser.data()?['name'] ?? 'Unknown User',
+        'name': invitedUser.data()['name'] ?? 'Unknown User',
         'email': email.toLowerCase(),
-        'photoURL': invitedUser.data()?['photoURL'] ?? '',
+        'photoURL': invitedUser.data()['photoURL'] ?? '',
         'role': MemberRole.editor.name,
         'addedAt': FieldValue.serverTimestamp(),
         'addedBy': _auth.currentUser?.uid ?? '',
       });
 
-      // Also add this group to the user's groups collection for easy reference
       await _firestore
           .collection('users')
           .doc(invitedUser.id)
@@ -74,7 +84,6 @@ class AddGroupService {
         'joinedAt': FieldValue.serverTimestamp(),
         'role': MemberRole.editor.name,
       });
-      
     } catch (e) {
       if (e is FirebaseException) {
         throw Exception('Firebase error: ${e.message}');
@@ -91,31 +100,30 @@ class AddGroupService {
         .collection('members')
         .orderBy('addedAt', descending: false)
         .snapshots()
-        .map((snapshot) => 
-            snapshot.docs.map((doc) => {
-              ...doc.data(),
-              'id': doc.id,
-            }).toList()
-        );
+        .map((snapshot) => snapshot.docs
+            .map((doc) => {
+                  ...doc.data(),
+                  'id': doc.id,
+                })
+            .toList());
   }
 
   // Change a member's role
-  Future<void> updateMemberRole(String groupId, String userId, MemberRole role) async {
+  Future<void> updateMemberRole(
+      String groupId, String userId, MemberRole role) async {
     try {
-      // Verify current user is admin of the group
       final currentUserMember = await _firestore
           .collection('groups')
           .doc(groupId)
           .collection('members')
           .doc(_auth.currentUser?.uid)
           .get();
-          
-      if (!currentUserMember.exists || 
+
+      if (!currentUserMember.exists ||
           currentUserMember.data()?['role'] != MemberRole.admin.name) {
         throw Exception('You do not have permission to change member roles');
       }
-      
-      // Update the member's role
+
       await _firestore
           .collection('groups')
           .doc(groupId)
@@ -126,8 +134,7 @@ class AddGroupService {
         'updatedAt': FieldValue.serverTimestamp(),
         'updatedBy': _auth.currentUser?.uid,
       });
-      
-      // Also update in user's groups collection
+
       await _firestore
           .collection('users')
           .doc(userId)
@@ -136,7 +143,6 @@ class AddGroupService {
           .update({
         'role': role.name,
       });
-      
     } catch (e) {
       if (e is FirebaseException) {
         throw Exception('Firebase error: ${e.message}');
@@ -155,12 +161,12 @@ class AddGroupService {
           .collection('members')
           .doc(_auth.currentUser?.uid)
           .get();
-          
-      if (!currentUserMember.exists || 
+
+      if (!currentUserMember.exists ||
           currentUserMember.data()?['role'] != MemberRole.admin.name) {
         throw Exception('You do not have permission to remove members');
       }
-      
+
       // Remove from group's members collection
       await _firestore
           .collection('groups')
@@ -168,7 +174,7 @@ class AddGroupService {
           .collection('members')
           .doc(userId)
           .delete();
-      
+
       // Remove from user's groups collection
       await _firestore
           .collection('users')
@@ -176,7 +182,6 @@ class AddGroupService {
           .collection('groups')
           .doc(groupId)
           .delete();
-      
     } catch (e) {
       if (e is FirebaseException) {
         throw Exception('Firebase error: ${e.message}');
@@ -191,7 +196,7 @@ class AddGroupService {
     if (userId == null) {
       throw Exception('User not authenticated');
     }
-    
+
     return _firestore
         .collection('users')
         .doc(userId)

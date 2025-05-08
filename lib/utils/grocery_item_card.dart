@@ -4,6 +4,9 @@ import '../providers/grocery_item_provider.dart';
 import '../services/grocery_item_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// The following defines a Flutter widget called GroceryItemCard that displays details of a grocery
+/// item and allows the user to interact with it, such as marking it as bought, deleting it, editing its
+/// details, and displaying the user who added the item.
 class GroceryItemCard extends StatefulWidget {
   final Map<String, dynamic> item;
   const GroceryItemCard({super.key, required this.item});
@@ -15,26 +18,26 @@ class GroceryItemCard extends StatefulWidget {
 class _GroceryItemCardState extends State<GroceryItemCard> {
   final GroceryItemService _groceryItemService = GroceryItemService();
 
-void _toggleBought() async {
-  final provider = Provider.of<GroceryItemProvider>(context, listen: false);
-  final itemId = widget.item['id'];
+  void _toggleBought() async {
+    final provider = Provider.of<GroceryItemProvider>(context, listen: false);
+    final itemId = widget.item['id'];
 
-  if (itemId != null) {
-    final newStatus = !(widget.item['bought'] ?? false);
+    if (itemId != null) {
+      final newStatus = !(widget.item['bought'] ?? false);
 
-    await _groceryItemService.toggleBought(
-      groupId: provider.groupId,
-      listId: provider.listId,
-      itemId: itemId,
-      currentStatus: !newStatus,
-    );
+      await _groceryItemService.toggleBought(
+        groupId: provider.groupId,
+        listId: provider.listId,
+        itemId: itemId,
+        currentStatus: !newStatus,
+      );
 
-    if (!mounted) return;
-    setState(() {
-      widget.item['bought'] = newStatus;
-    });
+      if (!mounted) return;
+      setState(() {
+        widget.item['bought'] = newStatus;
+      });
+    }
   }
-}
 
   void _deleteItem() async {
     final provider = Provider.of<GroceryItemProvider>(context, listen: false);

@@ -5,6 +5,8 @@ import '../utils/grocery_item_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/kroger_product_service.dart';
 
+/// The following defines a StatefulWidget for managing grocery items, including adding items,
+/// displaying categories, and searching for products using Kroger API.
 class GroceryItemScreen extends StatefulWidget {
   final String listName;
 
@@ -15,7 +17,6 @@ class GroceryItemScreen extends StatefulWidget {
 }
 
 class _GroceryItemScreenState extends State<GroceryItemScreen> {
-  // Use a nullable variable instead of late
   GroceryItemProvider? _groceryItemProvider;
   List<Map<String, dynamic>> _krogerSearchResults = [];
 
@@ -42,19 +43,16 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Only initialize if it hasn't been initialized yet
     _groceryItemProvider ??=
         Provider.of<GroceryItemProvider>(context, listen: false);
   }
 
   @override
   void dispose() {
-    // Use the stored reference with null check
     _groceryItemProvider?.clear();
     super.dispose();
   }
 
-  // Extract image URL from product data
   String extractImageUrl(Map<String, dynamic> product) {
     try {
       final images = product['images'] as List?;
@@ -88,7 +86,7 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
     final nameController = TextEditingController();
     final quantityController = TextEditingController();
     final priceController = TextEditingController();
-    final categoryController = TextEditingController(); // New controller
+    final categoryController = TextEditingController();
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     showDialog(
@@ -115,8 +113,7 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
               ),
               TextField(
                 controller: categoryController,
-                decoration:
-                    const InputDecoration(labelText: 'Category'), // New field
+                decoration: const InputDecoration(labelText: 'Category'),
               ),
             ],
           ),
@@ -139,8 +136,7 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
                     .addItem(name, quantity, price, userId, extraFields: {
                   if (category.isNotEmpty) 'categories': category,
                 });
-              } else {
-              }
+              } else {}
 
               Navigator.pop(dialogContext);
             },
@@ -178,159 +174,161 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
         ),
       ),
       body: Stack(
-  children: [
-    Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search Groceries',
-              prefixIcon: const Icon(Icons.search),
-              filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.light
-                  ? const Color(0xFFEEECF4)
-                  : const Color(0xFF0F0E17),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: (query) async {
-              if (query.isNotEmpty && _krogerLocationId != null) {
-                final results = await _krogerProductService.searchProducts(
-                    query, _krogerLocationId!);
-                setState(() {
-                  _krogerSearchResults =
-                      (results ?? []).cast<Map<String, dynamic>>();
-                });
-              } else {
-                setState(() {
-                  _krogerSearchResults = [];
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ..._buildCategorySections(context, incompleteItems, theme),
-                if (boughtItems.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Bought',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: theme.onSurface.withOpacity(0.7),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search Groceries',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.light
+                        ? const Color(0xFFEEECF4)
+                        : const Color(0xFF0F0E17),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  ...boughtItems.map((item) => GroceryItemCard(item: item)),
-                ],
+                  onChanged: (query) async {
+                    if (query.isNotEmpty && _krogerLocationId != null) {
+                      final results = await _krogerProductService
+                          .searchProducts(query, _krogerLocationId!);
+                      setState(() {
+                        _krogerSearchResults =
+                            (results ?? []).cast<Map<String, dynamic>>();
+                      });
+                    } else {
+                      setState(() {
+                        _krogerSearchResults = [];
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ..._buildCategorySections(
+                          context, incompleteItems, theme),
+                      if (boughtItems.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Text(
+                          'Bought',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: theme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...boughtItems
+                            .map((item) => GroceryItemCard(item: item)),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
+          if (_krogerSearchResults.isNotEmpty)
+            Positioned(
+              top: 90,
+              left: 16,
+              right: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                constraints: BoxConstraints(maxHeight: 400),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _krogerSearchResults.length,
+                  itemBuilder: (context, index) {
+                    final product = _krogerSearchResults[index];
+                    final name = product['description'] ?? 'Unknown';
+                    final brand = product['brand'] ?? '';
+                    final items = product['items'] as List<dynamic>? ?? [];
+                    final size =
+                        items.isNotEmpty ? (items[0]['size'] ?? '') : '';
+                    final price = (items.isNotEmpty &&
+                            items[0]['price'] != null &&
+                            items[0]['price']['regular'] != null)
+                        ? double.tryParse(
+                                items[0]['price']['regular'].toString()) ??
+                            0.0
+                        : 0.0;
+
+                    final imageUrl = extractImageUrl(product);
+
+                    return ListTile(
+                      title: Text(name),
+                      subtitle: Text('$brand $size'),
+                      trailing: Text('\$${price.toStringAsFixed(2)}'),
+                      leading: imageUrl.isNotEmpty
+                          ? Image.network(
+                              imageUrl,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.image_not_supported);
+                              },
+                            )
+                          : const Icon(Icons.shopping_bag),
+                      onTap: () async {
+                        final userId =
+                            FirebaseAuth.instance.currentUser?.uid ?? '';
+                        final size =
+                            items.isNotEmpty ? (items[0]['size'] ?? '') : '';
+                        final price = (items.isNotEmpty &&
+                                items[0]['price'] != null &&
+                                items[0]['price']['regular'] != null)
+                            ? double.tryParse(
+                                    items[0]['price']['regular'].toString()) ??
+                                0.0
+                            : 0.0;
+                        final imageUrl = extractImageUrl(product);
+
+                        await Provider.of<GroceryItemProvider>(context,
+                                listen: false)
+                            .addItem(
+                          product['description'] ?? 'Unknown',
+                          1,
+                          price,
+                          userId,
+                          extraFields: {
+                            'brand': product['brand'] ?? '',
+                            'size': size,
+                            'image': imageUrl,
+                            'categories': product['categories'] ?? [],
+                          },
+                        );
+
+                        setState(() {
+                          _krogerSearchResults = [];
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
         ],
       ),
-    ),
-    if (_krogerSearchResults.isNotEmpty)
-      Positioned(
-        top: 90,
-        left: 16,
-        right: 16,
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          constraints: BoxConstraints(maxHeight: 400),
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _krogerSearchResults.length,
-            itemBuilder: (context, index) {
-              final product = _krogerSearchResults[index];
-              final name = product['description'] ?? 'Unknown';
-              final brand = product['brand'] ?? '';
-              final items = product['items'] as List<dynamic>? ?? [];
-              final size =
-                  items.isNotEmpty ? (items[0]['size'] ?? '') : '';
-              final price = (items.isNotEmpty &&
-                      items[0]['price'] != null &&
-                      items[0]['price']['regular'] != null)
-                  ? double.tryParse(
-                          items[0]['price']['regular'].toString()) ??
-                      0.0
-                  : 0.0;
-
-              final imageUrl = extractImageUrl(product);
-
-              return ListTile(
-                title: Text(name),
-                subtitle: Text('$brand $size'),
-                trailing: Text('\$${price.toStringAsFixed(2)}'),
-                leading: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.image_not_supported);
-                        },
-                      )
-                    : const Icon(Icons.shopping_bag),
-                onTap: () async {
-                  final userId =
-                      FirebaseAuth.instance.currentUser?.uid ?? '';
-                  final size =
-                      items.isNotEmpty ? (items[0]['size'] ?? '') : '';
-                  final price = (items.isNotEmpty &&
-                          items[0]['price'] != null &&
-                          items[0]['price']['regular'] != null)
-                      ? double.tryParse(
-                              items[0]['price']['regular'].toString()) ??
-                          0.0
-                      : 0.0;
-                  final imageUrl = extractImageUrl(product);
-
-                  await Provider.of<GroceryItemProvider>(context,
-                          listen: false)
-                      .addItem(
-                    product['description'] ?? 'Unknown',
-                    1,
-                    price,
-                    userId,
-                    extraFields: {
-                      'brand': product['brand'] ?? '',
-                      'size': size,
-                      'image': imageUrl,
-                      'categories': product['categories'] ?? [],
-                    },
-                  );
-
-                  setState(() {
-                    _krogerSearchResults = [];
-                  });
-                },
-              );
-            },
-          ),
-        ),
-      ),
-  ],
-),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemDialog(context),
         backgroundColor: theme.primary,
@@ -341,54 +339,44 @@ class _GroceryItemScreenState extends State<GroceryItemScreen> {
   }
 }
 
-// FIXED: The problem was in this function handling the category display
 List<Widget> _buildCategorySections(
     BuildContext context, List<Map<String, dynamic>> items, ColorScheme theme) {
   final Map<String, List<Map<String, dynamic>>> groupedItems = {};
 
-  // Default all items to 'Uncategorized' first
   for (var item in items) {
-    // Initialize default category
     String category = 'Uncategorized';
 
-    // Check if categories exists and determine its type
     if (item.containsKey('categories')) {
       var rawCategory = item['categories'];
 
       if (rawCategory is List && rawCategory.isNotEmpty) {
-        // If it's a list and not empty, use the first item
         category = rawCategory.first.toString();
       } else if (rawCategory is String && rawCategory.isNotEmpty) {
-        // If it's a non-empty string, use it directly
         category = rawCategory;
       } else if (rawCategory != null && rawCategory.toString().isNotEmpty) {
-        // Handle other cases by converting to string
         category = rawCategory.toString();
       }
     }
 
-    // Ensure the category exists in our map
     if (!groupedItems.containsKey(category)) {
       groupedItems[category] = [];
     }
 
-    // Add item to the appropriate category
     groupedItems[category]!.add(item);
   }
 
-  // Return widgets for each category
   return groupedItems.entries.map((entry) {
     final category = entry.key;
     final itemsInCategory = entry.value;
 
     return Theme(
       data: Theme.of(context).copyWith(
-        dividerColor: Colors.transparent, // removes divider lines
-        splashColor: Colors.transparent, // optional: removes ripple
-        highlightColor: Colors.transparent, // optional: removes ripple
+        dividerColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
       ),
       child: ExpansionTile(
-        backgroundColor: Colors.transparent, // optional: ensures no color block
+        backgroundColor: Colors.transparent,
         collapsedBackgroundColor: Colors.transparent,
         title: Text(
           category,

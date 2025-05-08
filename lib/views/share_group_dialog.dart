@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/add_group_service.dart';
 
+/// The ShareGroupDialog class in Dart represents a dialog for sharing a group and inviting users,
+/// displaying group members, and providing actions for each member.
 class ShareGroupDialog extends StatefulWidget {
   final String groupId;
-  
-  const ShareGroupDialog({
-    super.key, 
-    required this.groupId
-  });
+
+  const ShareGroupDialog({super.key, required this.groupId});
 
   @override
   State<ShareGroupDialog> createState() => _ShareGroupDialogState();
@@ -70,7 +69,8 @@ class _ShareGroupDialogState extends State<ShareGroupDialog> {
             Row(
               children: [
                 const Text('Share Group',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -83,7 +83,8 @@ class _ShareGroupDialogState extends State<ShareGroupDialog> {
               controller: _emailController,
               decoration: InputDecoration(
                 hintText: 'Enter email to invite',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 suffixIcon: _isLoading
                     ? const SizedBox(
                         height: 24,
@@ -105,7 +106,8 @@ class _ShareGroupDialogState extends State<ShareGroupDialog> {
             const SizedBox(height: 20),
             const Align(
               alignment: Alignment.centerLeft,
-              child: Text('Group Members', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text('Group Members',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 10),
             StreamBuilder<List<Map<String, dynamic>>>(
@@ -119,7 +121,7 @@ class _ShareGroupDialogState extends State<ShareGroupDialog> {
                     ),
                   );
                 }
-                
+
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(16.0),
@@ -152,10 +154,7 @@ class _UserRow extends StatelessWidget {
   final String name;
   final String imageUrl;
 
-  const _UserRow({
-    required this.name, 
-    required this.imageUrl
-  });
+  const _UserRow({required this.name, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -164,20 +163,16 @@ class _UserRow extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+            backgroundImage:
+                imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
             child: imageUrl.isEmpty ? const Icon(Icons.person) : null,
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.w500)
-            )
-          ),
+              child: Text(name,
+                  style: const TextStyle(fontWeight: FontWeight.w500))),
           PopupMenuButton<String>(
-            onSelected: (value) {
-              // Handle member actions
-            },
+            onSelected: (value) {},
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'edit', child: Text('Edit')),
               PopupMenuItem(value: 'viewer', child: Text('Make Viewer')),

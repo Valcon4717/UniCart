@@ -1,32 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+/// This class is a widget that displays a user's avatar image fetched from
+/// Firestore, with options to use a stream or a future for real-time updates.
 class UserAvatar extends StatelessWidget {
   final String userId;
   final double radius;
-  final bool useStream; // Option to use stream for real-time updates
+  final bool useStream;
 
   const UserAvatar({
-    super.key, 
-    required this.userId, 
+    super.key,
+    required this.userId,
     this.radius = 12,
-    this.useStream = true, // Default to using stream for real-time updates
+    this.useStream = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Use a stream builder instead of future builder for real-time updates
     if (useStream) {
       return StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots(),
         builder: (context, snapshot) {
           return _buildAvatar(snapshot);
         },
       );
     } else {
-      // Fallback to future for non-critical displays
       return FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+        future:
+            FirebaseFirestore.instance.collection('users').doc(userId).get(),
         builder: (context, snapshot) {
           return _buildAvatar(snapshot);
         },
@@ -35,7 +39,7 @@ class UserAvatar extends StatelessWidget {
   }
 
   Widget _buildAvatar(AsyncSnapshot<DocumentSnapshot> snapshot) {
-    if (snapshot.connectionState == ConnectionState.active || 
+    if (snapshot.connectionState == ConnectionState.active ||
         snapshot.connectionState == ConnectionState.done) {
       if (snapshot.hasData && snapshot.data!.exists) {
         final doc = snapshot.data!;

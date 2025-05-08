@@ -2,6 +2,23 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/grocery_item_service.dart';
 
+/// Manages grocery items in a list.
+///
+/// Interacts with [GroceryItemService] to fetch, add, and update items.
+/// Notifies listeners on changes.
+///
+/// Properties:
+/// - [items]: List of grocery items.
+/// - [isLoading]: Indicates if data is loading.
+///
+/// Methods:
+/// - [_subscribe]: Listens to item updates.
+/// - [addItem]: Adds a new item.
+/// - [updateItem]: Updates an item.
+/// - [refresh]: Reloads items.
+/// - [clear]: Clears items and cancels subscription.
+///
+/// Disposes subscription on cleanup.
 class GroceryItemProvider extends ChangeNotifier {
   final GroceryItemService _groceryItemService;
   final String groupId;
@@ -31,7 +48,6 @@ class GroceryItemProvider extends ChangeNotifier {
         .getItems(groupId, listId)
         .listen((fetchedItems) {
       _items = fetchedItems.map((item) {
-        // Make sure categories is always properly initialized
         var categories = item['categories'];
         categories ??= 'Uncategorized';
         

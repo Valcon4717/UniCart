@@ -1,5 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Provides services for managing grocery lists within a group using Firebase Firestore.
+///
+/// Properties:
+/// - [_db]: An instance of [FirebaseFirestore] used to interact with the Firestore database.
+///
+/// Methods:
+/// - [getLists]: Fetches all grocery lists for a specific group as a stream of list maps.
+/// - [createList]: Creates a new grocery list with the provided details, including metadata such as
+///   the creator's name and photo.
+/// - [updateGroceryList]: Updates the name of a specific grocery list and updates its last modified timestamp.
+/// - [deleteGroceryList]: Deletes a specific grocery list from the Firestore database.
+/// - [togglePinnedStatus]: Toggles the pinned status of a specific grocery list.
+
 class ListService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -25,7 +38,10 @@ class ListService {
   }) async {
     final now = Timestamp.now();
 
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(createdBy).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(createdBy)
+        .get();
 
     final createdByName = userDoc.exists ? userDoc['name'] ?? '' : '';
     final createdByPhoto = userDoc.exists ? userDoc['photoURL'] ?? '' : '';
@@ -52,9 +68,9 @@ class ListService {
         .collection('lists')
         .doc(listId)
         .update({
-          'name': newName,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        });
+      'name': newName,
+      'lastUpdated': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Delete a list
@@ -66,7 +82,7 @@ class ListService {
         .doc(listId)
         .delete();
   }
-  
+
   Future<void> togglePinnedStatus({
     required String groupId,
     required String listId,

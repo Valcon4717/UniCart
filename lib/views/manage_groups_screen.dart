@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-
 import '../services/group_service.dart';
 import '../providers/group_provider.dart';
 
+/// Responsible for displaying and managing user groups,
+/// allowing users to delete or leave groups, and switch between groups.
 class ManageGroupsScreen extends StatefulWidget {
   const ManageGroupsScreen({super.key});
 
@@ -29,7 +30,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
 
   Future<void> _fetchGroups() async {
     final groups = await GroupService(userId: userId).getUserGroups();
-    final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
+    final currentGroup =
+        Provider.of<GroupProvider>(context, listen: false).group;
     setState(() {
       _groups = groups;
       _selectedGroupId = currentGroup?.id;
@@ -44,8 +46,12 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
         title: const Text('Delete Group'),
         content: const Text('Are you sure you want to delete this group?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete')),
         ],
       ),
     );
@@ -59,8 +65,12 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
         title: const Text('Leave Group'),
         content: const Text('Are you sure you want to leave this group?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Leave')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Leave')),
         ],
       ),
     );
@@ -71,7 +81,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
     try {
       await GroupService(userId: userId).leaveGroup(groupId);
 
-      final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
+      final currentGroup =
+          Provider.of<GroupProvider>(context, listen: false).group;
       if (currentGroup?.id == groupId) {
         Provider.of<GroupProvider>(context, listen: false).clearGroup();
         final prefs = await SharedPreferences.getInstance();
@@ -87,7 +98,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to leave the group. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to leave the group. Please try again.')),
       );
     }
   }
@@ -96,7 +108,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
     try {
       await GroupService(userId: userId).deleteGroup(groupId);
 
-      final currentGroup = Provider.of<GroupProvider>(context, listen: false).group;
+      final currentGroup =
+          Provider.of<GroupProvider>(context, listen: false).group;
       if (currentGroup?.id == groupId) {
         Provider.of<GroupProvider>(context, listen: false).clearGroup();
         final prefs = await SharedPreferences.getInstance();
@@ -112,7 +125,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete the group. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to delete the group. Please try again.')),
       );
     }
   }
@@ -162,7 +176,8 @@ class _ManageGroupsScreenState extends State<ManageGroupsScreen> {
                   confirmDismiss: (direction) async {
                     if (direction == DismissDirection.startToEnd) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Edit not yet implemented.')),
+                        const SnackBar(
+                            content: Text('Edit not yet implemented.')),
                       );
                       return false;
                     } else {
