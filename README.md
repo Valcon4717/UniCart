@@ -14,7 +14,8 @@
 
 ## 🖌️ Design & Architecture
 
-UniCart follows the **Model-View-Controller (MVC)** architecture and UI designed with clean Material-inspired principles.
+UniCart follows the **Model-View-Controller (MVC)** architecture. The UI was designed with clean Material-inspired principles focusing on a modern and inviting aesthetic.
+You can view the Figma design [here](https://www.figma.com/design/84w1dYkVwAq4SFoHaitVUV/UniCart?node-id=0-1&t=HS4s2IDZKp6C2ytJ-1).
 
 * `controllers/` for user and auth logic.
 * `providers/` with `ChangeNotifier` for reactive state.
